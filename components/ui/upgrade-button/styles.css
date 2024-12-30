@@ -1,0 +1,17 @@
+.upgrade-button-gradient {
+  background: linear-gradient(90deg, #4F46E5, #9333EA, #EC4899);
+  background-size: 200% 200%;
+  animation: gradient 3s ease infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}

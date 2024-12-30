@@ -1,0 +1,26 @@
+{
+  "invoice": {
+    "title": "Invoice",
+    "number": "Invoice Number",
+    "issueDate": "Issue Date",
+    "dueDate": "Due Date",
+    "billTo": "Bill To",
+    "description": "Description",
+    "quantity": "Qty",
+    "unitPrice": "Unit Price",
+    "amount": "Amount",
+    "subtotal": "Subtotal",
+    "tax": "Tax",
+    "total": "Total",
+    "amountDue": "Amount Due",
+    "notes": "Notes",
+    "paymentTerms": "Payment Terms",
+    "currency": "All amounts in {{currency}}"
+  },
+  "company": {
+    "taxId": "Tax ID",
+    "phone": "Phone",
+    "email": "Email",
+    "website": "Website"
+  }
+}
