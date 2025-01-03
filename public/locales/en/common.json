@@ -111,6 +111,10 @@
     "Editing": "Editing..."
   },
 
+  "Upgrade": {
+    "ToPro": "Upgrade to Pro"
+  },
+
   "Settings": {
     "Title": "Settings",
     "Description": "Manage your account settings and preferences",
@@ -128,10 +132,44 @@
     "PasswordUpdateSuccess": "Password updated successfully",
     "PasswordUpdateError": "Failed to update password",
     "EmailUpdateSuccess": "Email updated successfully",
-    "EmailUpdateError": "Failed to update email"
-  },
-
-  "Upgrade": {
-    "ToPro": "Upgrade to Pro"
+    "EmailUpdateError": "Failed to update email",
+    "Company": {
+      "Title": "Company Settings",
+      "Sections": {
+        "BasicInfo": "Basic Information",
+        "Contact": "Contact Information",
+        "Address": "Address Information",
+        "Banking": "Banking Information"
+      },
+      "Fields": {
+        "CompanyName": "Company Name",
+        "TradeName": "Trade Name",
+        "TaxID": "Tax ID",
+        "EconomicCode": "Economic Activity Code",
+        "ShareCapital": "Share Capital",
+        "Currency": "Currency",
+        "SelectCurrency": "Select currency",
+        "PhoneCountry": "Country Code",
+        "PhoneNumber": "Phone Number",
+        "Website": "Website",
+        "Address": "Address",
+        "City": "City",
+        "Region": "Region",
+        "PostalCode": "Postal Code",
+        "Country": "Country",
+        "BankName": "Bank Name",
+        "AccountNumber": "Account Number",
+        "SwiftCode": "SWIFT Code"
+      },
+      "Actions": {
+        "AddBank": "Add Bank Account",
+        "SaveChanges": "Save Changes",
+        "Saving": "Saving..."
+      },
+      "Messages": {
+        "UpdateSuccess": "Company information updated successfully",
+        "UpdateError": "Failed to update company information"
+      }
+    }
   }
 }

@@ -1,5 +1,5 @@
 {
-  "Dashboard": "Panel",
+  "Dashboard": "Panel de Control",
   "Dashboard.Description": "Resumen de las métricas de tu negocio",
   "Dashboard.TotalClients": "Total de Clientes",
   "Dashboard.TotalInvoices": "Total de Facturas",
@@ -14,11 +14,11 @@
   "Clients.TaxId": "NIF/CIF",
   "Clients.City": "Ciudad",
   "Clients.Country": "País",
-  "Clients.Email": "Correo",
+  "Clients.Email": "Correo Electrónico",
   "Clients.Phone": "Teléfono",
   "Clients.NoClients": "No se encontraron clientes",
-  "Clients.Headquarters": "Sede",
-  "Clients.Region": "Región/Estado",
+  "Clients.Headquarters": "Sede Central",
+  "Clients.Region": "Región/Provincia",
   "Clients.PostalCode": "Código Postal",
   "Clients.Website": "Sitio Web",
   "Clients.AccountManager": "Gestor de Cuenta",
@@ -34,7 +34,7 @@
   "Products.UnitPrice": "Precio",
   "Products.Currency": "Moneda",
   "Products.TaxRate": "Tasa de IVA",
-  "Products.TaxAmount": "Monto de IVA",
+  "Products.TaxAmount": "Importe de IVA",
   "Products.TaxExemptionReason": "Justificación de Exención de IVA",
   "Products.Subtotal": "Subtotal",
   "Products.Total": "Total",
@@ -45,7 +45,7 @@
   "Products.EditError": "Error al actualizar producto/servicio",
   "Products.DeleteSuccess": "Producto/Servicio eliminado con éxito",
   "Products.DeleteError": "Error al eliminar producto/servicio",
-  "Products.DeleteConfirm": "¿Está seguro de que desea eliminar este producto/servicio?",
+  "Products.DeleteConfirm": "¿Estás seguro de que quieres eliminar este producto/servicio?",
 
   "Invoices": "Facturas",
   "Invoices.Description": "Gestiona tus facturas",
@@ -68,36 +68,35 @@
   "Invoices.StatusUpdateSuccess": "Estado de factura actualizado",
   "Invoices.StatusUpdateError": "Error al actualizar estado de factura",
   "Invoices.Currency": "Moneda",
-  "Invoices.Language": "Idioma de la Factura",
+  "Invoices.Language": "Idioma de Factura",
   "Invoices.Notes": "Notas",
   "Invoices.SelectClient": "Seleccionar Cliente",
   "Invoices.Creating": "Creando factura...",
   "Invoices.CreateSuccess": "Factura creada con éxito",
   "Invoices.CreateError": "Error al crear factura",
   "Invoices.Subtotal": "Subtotal",
-  "Invoices.TaxTotal": "Total IVA",
+  "Invoices.TaxTotal": "Total de Impuestos",
   "Invoices.AddItem": "Añadir Ítem",
 
   "Auth": {
     "Welcome": "Bienvenido a CYTO",
     "WelcomeBack": "Bienvenido de nuevo",
-    "EnterCredentials": "Ingresa tus credenciales para continuar",
-    "Email": "Correo electrónico",
+    "EnterCredentials": "Introduce tus credenciales para continuar",
+    "Email": "Correo Electrónico",
     "Password": "Contraseña",
-    "ConfirmPassword": "Confirmar Contraseña",
-    "FirstName": "Nombre",
-    "LastName": "Apellido",
-    "Phone": "Teléfono",
     "SignIn": "Iniciar Sesión",
     "SigningIn": "Iniciando sesión...",
     "SignUp": "Registrarse",
     "SigningUp": "Registrando...",
     "SignOut": "Cerrar Sesión",
-    "NoAccount": "¿No tienes una cuenta?",
-    "HaveAccount": "¿Ya tienes una cuenta?",
+    "NoAccount": "¿No tienes cuenta?",
     "CreateAccount": "Crear Cuenta",
     "LoginError": "Error al iniciar sesión",
-    "RegisterError": "Error al registrarse"
+    "RegisterError": "Error al registrarse",
+    "ContinueWithGoogle": "Continuar con Google",
+    "SigningInWithGoogle": "Iniciando sesión con Google...",
+    "OrContinueWith": "O continuar con",
+    "SignOutConfirm": "¿Estás seguro de que quieres cerrar sesión?"
   },
 
   "Form": {
@@ -112,27 +111,65 @@
     "Editing": "Editando..."
   },
 
+  "Upgrade": {
+    "ToPro": "Actualizar a Pro"
+  },
+
   "Settings": {
     "Title": "Configuración",
-    "Description": "Gestiona la configuración de tu cuenta",
+    "Description": "Gestiona la configuración y preferencias de tu cuenta",
     "Account": "Cuenta",
     "Security": "Seguridad",
-    "ChangeEmail": "Cambiar Email",
+    "ChangeEmail": "Cambiar Correo",
     "ChangePassword": "Cambiar Contraseña",
     "CurrentPassword": "Contraseña Actual",
     "NewPassword": "Nueva Contraseña",
     "ConfirmPassword": "Confirmar Nueva Contraseña",
-    "NewEmail": "Nueva Dirección de Email",
+    "NewEmail": "Nueva Dirección de Correo",
     "UpdatePassword": "Actualizar Contraseña",
-    "UpdateEmail": "Actualizar Email",
+    "UpdateEmail": "Actualizar Correo",
     "Updating": "Actualizando...",
     "PasswordUpdateSuccess": "Contraseña actualizada con éxito",
-    "PasswordUpdateError": "Error al actualizar la contraseña",
-    "EmailUpdateSuccess": "Email actualizado con éxito",
-    "EmailUpdateError": "Error al actualizar el email"
-  },
-
-  "Upgrade": {
-    "ToPro": "Actualizar a Pro"
+    "PasswordUpdateError": "Error al actualizar contraseña",
+    "EmailUpdateSuccess": "Correo actualizado con éxito",
+    "EmailUpdateError": "Error al actualizar correo",
+    "Company": {
+      "Title": "Configuración de la Empresa",
+      "Sections": {
+        "BasicInfo": "Información Básica",
+        "Contact": "Información de Contacto",
+        "Address": "Información de Dirección",
+        "Banking": "Información Bancaria"
+      },
+      "Fields": {
+        "CompanyName": "Nombre de la Empresa",
+        "TradeName": "Nombre Comercial",
+        "TaxID": "NIF/CIF",
+        "EconomicCode": "Código de Actividad Económica",
+        "ShareCapital": "Capital Social",
+        "Currency": "Moneda",
+        "SelectCurrency": "Seleccionar moneda",
+        "PhoneCountry": "Código de País",
+        "PhoneNumber": "Número de Teléfono",
+        "Website": "Sitio Web",
+        "Address": "Dirección",
+        "City": "Ciudad",
+        "Region": "Región",
+        "PostalCode": "Código Postal",
+        "Country": "País",
+        "BankName": "Nombre del Banco",
+        "AccountNumber": "Número de Cuenta",
+        "SwiftCode": "Código SWIFT"
+      },
+      "Actions": {
+        "AddBank": "Añadir Cuenta Bancaria",
+        "SaveChanges": "Guardar Cambios",
+        "Saving": "Guardando..."
+      },
+      "Messages": {
+        "UpdateSuccess": "Información de la empresa actualizada con éxito",
+        "UpdateError": "Error al actualizar la información de la empresa"
+      }
+    }
   }
 }

@@ -1,3 +1,4 @@
+// settings/page.tsx
 'use client';
 
 import { useTranslation } from 'react-i18next';
@@ -7,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChangePasswordForm } from './components/change-password-form';
 import { ChangeEmailForm } from './components/change-email-form';
+import { CompanyInfoForm } from './components/company-info-form';
 
 export default function SettingsPage() {
   const { t } = useTranslation();
@@ -22,6 +24,7 @@ export default function SettingsPage() {
       <Tabs defaultValue="account" className="space-y-4">
         <TabsList>
           <TabsTrigger value="account">{t('Settings.Account')}</TabsTrigger>
+          <TabsTrigger value="company">{t('Settings.Company.Title')}</TabsTrigger>  
           <TabsTrigger value="security">{t('Settings.Security')}</TabsTrigger>
         </TabsList>
 
@@ -32,6 +35,17 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent>
               <ChangeEmailForm />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="company">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('Settings.Company.Title')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CompanyInfoForm />
             </CardContent>
           </Card>
         </TabsContent>
