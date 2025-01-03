@@ -6,6 +6,7 @@
   "Dashboard.MonthlyRevenue": "Monthly Revenue",
   "Dashboard.ExchangeRates": "Exchange Rates",
 
+
   "Clients": "Clients",
   "Clients.Description": "Manage your client information",
   "Clients.Add": "Add Client",
@@ -96,7 +97,16 @@
     "ContinueWithGoogle": "Continue with Google",
     "SigningInWithGoogle": "Signing in with Google...",
     "OrContinueWith": "Or continue with",
-    "SignOutConfirm": "Are you sure you want to sign out?"
+    "SignOutConfirm": "Are you sure you want to sign out?",
+    "GetStarted": "Get started with your free account today",
+    "FirstName": "First Name",
+    "LastName": "Last Name",
+    "Phone": "Phone Number",
+    "ConfirmPassword": "Confirm Password",
+    "HaveAccount": "Already have an account?",
+    "Passwrd": "Password",
+    "CountryCode": "Country Code"
+    
   },
 
   "Form": {

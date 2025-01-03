@@ -1,6 +1,31 @@
-// /lib/pdf/generate-pdf.ts
-import { pdf, Document } from '@react-pdf/renderer';
+'use client';
+
+import { pdf } from '@react-pdf/renderer';
 import { InvoiceDocument } from './components/invoice-document';
+import type { Invoice, InvoiceItem } from '@/lib/types';
+
+// Define the nested types first
+interface CompanyInfo {
+  company_name: string;
+  tax_id: string;
+  headquarters_address: string;
+  city: string;
+  region: string;
+  postal_code: string;
+  country: string;
+}
+
+// Define the extended Invoice type with nested objects
+interface InvoiceWithDetails extends Invoice {
+  client: CompanyInfo;
+  company: CompanyInfo;
+}
+
+// Define the PDF generation options interface
+interface GeneratePDFOptions {
+  invoice: InvoiceWithDetails;
+  items: InvoiceItem[];
+}
 
 export async function generatePDF({ invoice, items }: GeneratePDFOptions): Promise<Blob> {
   try {
@@ -9,14 +34,12 @@ export async function generatePDF({ invoice, items }: GeneratePDFOptions): Promi
       itemsCount: items.length
     });
 
-    // Validate input data
     if (!invoice || !items?.length) {
       console.log('Validation failed: missing invoice or items');
       throw new Error('Invalid invoice data');
     }
 
     console.log('Generating PDF blob...');
-    // Use the component directly without createElement
     const blob = await pdf(<InvoiceDocument invoice={invoice} items={items} />).toBlob();
     
     console.log('PDF generated successfully:', {

@@ -1,11 +1,9 @@
-
 const { createClient } = require('@supabase/supabase-js')
 const supabase_url = "https://ovjhjskagglsdkmlwnjx.supabase.co"
 const supabase_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92amhqc2thZ2dsc2RrbWx3bmp4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNTAzMDc1NiwiZXhwIjoyMDUwNjA2NzU2fQ.OSFNZIcXB5wvwvsVrwGuxAdIKIO5YBO2-loStV3XEbE"
 const supabase = createClient(supabase_url, supabase_key)
 
 const getRates = async () => {
-
   console.log('Deleting previous exchange rates');
   const { error:errorDeleting } = await supabase
   .from('exchange_rates')
@@ -47,11 +45,8 @@ const { data:result, error } = await supabase
   }else{
     console.log("Rates updated ! 👀")
   }
-
 }
 
+setInterval(getRates, 2000)
+
 getRates()
-
-// How to use it 
-// node getRates.js
-
