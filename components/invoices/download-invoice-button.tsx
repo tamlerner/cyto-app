@@ -1,18 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ArrowDownToLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { generatePDF } from '@/lib/pdf/generate-pdf';
-import type { Invoice } from '@/lib/types';
+import type { Invoice, InvoiceItem } from '@/lib/types';
 
 interface DownloadInvoiceButtonProps {
   invoice: Invoice & {
-    items: any[];
-    client: any;
-    company: any;
+    items: InvoiceItem[];
+    client: {
+      company_name: string;
+      email: string;
+    };
+    company: {
+      company_name: string;
+    };
   };
 }
 
@@ -21,86 +26,83 @@ export function DownloadInvoiceButton({ invoice }: DownloadInvoiceButtonProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
-  async function handleDownload() {
-    if (loading) return;
-
-    if (!invoice || !invoice.items) {
-      toast({
-        variant: 'destructive',
-        title: t('Invoices.DownloadError'),
-        description: 'Invalid invoice data'
-      });
-      return;
-    }
-
-    let url: string | null = null;
+  const downloadBlob = useCallback(async (blob: Blob) => {
+    const url = URL.createObjectURL(blob);
+    const filename = `invoice-${invoice.invoice_number}.pdf`;
 
     try {
-      setLoading(true);
+      console.log('Starting download process for:', filename);
+      
+      const link = document.createElement('a');
+      link.style.display = 'none';
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      
+      console.log('Triggering download...');
+      link.click();
+      
+      document.body.removeChild(link);
+      console.log('Download triggered successfully');
+      
+    } catch (downloadError) {
+      console.error('Download process error:', downloadError);
+      throw new Error('Failed to initiate download');
+    } finally {
+      try {
+        URL.revokeObjectURL(url);
+        console.log('URL revoked successfully');
+      } catch (cleanupError) {
+        console.error('Failed to revoke URL:', cleanupError);
+      }
+    }
+  }, [invoice.invoice_number]);
 
-      // Log data before generation
-      console.log('Starting PDF generation with:', {
-        hasInvoice: Boolean(invoice),
-        itemsCount: invoice.items?.length,
-        hasClient: Boolean(invoice.client),
-        hasCompany: Boolean(invoice.company)
-      });
+  const handleDownload = async () => {
+    if (loading) return;
 
-      // Generate PDF
+    setLoading(true);
+    console.log('Starting download process for invoice:', invoice.invoice_number);
+
+    try {
+      // Validate required data
+      if (!invoice.items?.length) {
+        throw new Error(t('Invoices.ErrorNoItems'));
+      }
+
+      console.log('Generating PDF...');
       const blob = await generatePDF({
         invoice,
         items: invoice.items
       });
 
-      if (!blob) {
-        throw new Error('PDF generation returned no data');
-      }
-
-      console.log('PDF generated successfully:', { blobSize: blob.size });
-
-      // Create download URL
-      url = URL.createObjectURL(blob);
-
-      // Create and trigger download
-      const link = document.createElement('a');
-      link.style.display = 'none';
-      link.href = url;
-      link.download = `invoice-${invoice.invoice_number}.pdf`;
-      
-      // Add to document, click, and remove
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      console.log('PDF generated, starting download...');
+      await downloadBlob(blob);
 
       toast({
         title: t('Invoices.DownloadSuccess'),
         description: t('Invoices.DownloadSuccessMessage')
       });
+      
     } catch (error) {
       console.error('Download process failed:', {
         error,
         errorType: error?.constructor?.name,
         message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
       });
 
       toast({
         variant: 'destructive',
         title: t('Invoices.DownloadError'),
-        description: error instanceof Error ? error.message : 'Failed to download invoice'
+        description: error instanceof Error 
+          ? error.message 
+          : t('Invoices.GenericDownloadError')
       });
     } finally {
-      // Cleanup URL if it was created
-      if (url) {
-        try {
-          URL.revokeObjectURL(url);
-        } catch (e) {
-          console.error('Failed to revoke URL:', e);
-        }
-      }
       setLoading(false);
+      console.log('Download process completed');
     }
-  }
+  };
 
   return (
     <Button
@@ -110,7 +112,10 @@ export function DownloadInvoiceButton({ invoice }: DownloadInvoiceButtonProps) {
       disabled={loading}
       title={t('Invoices.Download')}
     >
-      <ArrowDownToLine className="h-4 w-4" />
+      <ArrowDownToLine className={`h-4 w-4 ${loading ? 'opacity-50' : ''}`} />
+      {loading && (
+        <span className="sr-only">{t('Invoices.Downloading')}</span>
+      )}
     </Button>
   );
 }
