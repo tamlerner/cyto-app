@@ -97,19 +97,35 @@ export function CreateInvoiceForm({ onSuccess }: CreateInvoiceFormProps) {
   async function onSubmit(data: InvoiceFormData) {
     try {
       setLoading(true);
+      console.log('Starting invoice creation with data:', data); // Debug log
       
       if (!user) {
         throw new Error('You must be logged in to create an invoice');
       }
-
+  
+      // Get default company first
+      const { data: companyData, error: companyError } = await supabase
+        .from('invoice_companies')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+  
+      if (companyError) {
+        console.error('Company fetch error:', companyError);
+        throw companyError;
+      }
+      if (!companyData) throw new Error('No company found');
+  
       const invoice_number = generateInvoiceNumber();
       const { subtotal, tax_total, total } = calculateTotals(data.items);
-
-      const { error: invoiceError } = await supabase
+  
+      // First create the invoice
+      const { data: invoiceData, error: invoiceError } = await supabase
         .from('invoices')
-        .insert([{
+        .insert({
           invoice_number,
           client_id: data.client_id,
+          company_id: companyData.id, // This was missing before
           issue_date: data.issue_date.toISOString(),
           due_date: data.due_date.toISOString(),
           currency: data.currency,
@@ -120,12 +136,47 @@ export function CreateInvoiceForm({ onSuccess }: CreateInvoiceFormProps) {
           notes: data.notes,
           status: 'draft',
           user_id: user.id
-        }])
-        .select()
+        })
+        .select('*')  // Important: get back the created invoice
         .single();
-
-      if (invoiceError) throw invoiceError;
-
+  
+      if (invoiceError) {
+        console.error('Invoice creation error:', invoiceError);
+        throw invoiceError;
+      }
+  
+      if (!invoiceData) throw new Error('Failed to create invoice');
+  
+      console.log('Created invoice:', invoiceData); // Debug log
+  
+      // Then create all invoice items
+      const { error: itemsError } = await supabase
+        .from('invoice_items')
+        .insert(
+          data.items.map(item => {
+            const item_subtotal = item.quantity * item.unit_price;
+            const item_tax = (item_subtotal * item.tax_rate) / 100;
+            return {
+              invoice_id: invoiceData.id,
+              description: item.description,
+              quantity: item.quantity,
+              unit_price: item.unit_price,
+              currency: data.currency,
+              tax_rate: item.tax_rate,
+              tax_amount: item_tax,
+              subtotal: item_subtotal,
+              total_with_tax: item_subtotal + item_tax,
+              tax_exemption_reason: item.tax_exemption_reason,
+              user_id: user.id
+            };
+          })
+        );
+  
+      if (itemsError) {
+        console.error('Items creation error:', itemsError);
+        throw itemsError;
+      }
+  
       toast({
         title: t('Invoices.CreateSuccess'),
       });
@@ -133,6 +184,7 @@ export function CreateInvoiceForm({ onSuccess }: CreateInvoiceFormProps) {
       onSuccess?.();
       form.reset();
     } catch (error) {
+      console.error('Final error:', error); // Debug log
       toast({
         variant: 'destructive',
         title: t('Invoices.CreateError'),
@@ -160,7 +212,7 @@ export function CreateInvoiceForm({ onSuccess }: CreateInvoiceFormProps) {
                 </FormControl>
                 <SelectContent>
                   {clients?.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
+                    <SelectItem key={client.id} value={client.id || ''}>
                       {client.company_name}
                     </SelectItem>
                   ))}

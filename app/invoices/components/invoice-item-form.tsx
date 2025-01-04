@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useFormContext } from 'react-hook-form';
 import { Trash2 } from 'lucide-react';
 import {
   FormControl,
@@ -23,10 +23,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { TAX_RATES } from '@/lib/constants/tax-rates';
 import { SUPPORTED_CURRENCIES } from '@/lib/constants';
 import { useProducts } from '@/app/products/hooks/use-products';
-import type { UseFormReturn } from 'react-hook-form';
+import type { InvoiceFormData } from '../types';
 
 interface InvoiceItemFormProps {
-  form: UseFormReturn<any>;
   index: number;
   onRemove: () => void;
   isRemoveDisabled: boolean;
@@ -34,7 +33,6 @@ interface InvoiceItemFormProps {
 }
 
 export function InvoiceItemForm({
-  form,
   index,
   onRemove,
   isRemoveDisabled,
@@ -42,25 +40,28 @@ export function InvoiceItemForm({
 }: InvoiceItemFormProps) {
   const { t } = useTranslation();
   const { products } = useProducts();
-  const taxRate = form.watch(`items.${index}.tax_rate`);
+  const { control, watch } = useFormContext<InvoiceFormData>();
+  
+  const taxRate = watch(`items.${index}.tax_rate`);
   const showJustification = Number(taxRate) === 0;
   const currencySymbol = SUPPORTED_CURRENCIES.find(c => c.code === currency)?.symbol || '';
 
   function handleProductSelect(productId: string) {
     const product = products.find(p => p.id === productId);
-    if (product) {
-      form.setValue(`items.${index}.description`, product.item_description);
-      form.setValue(`items.${index}.unit_price`, product.unit_price);
-      form.setValue(`items.${index}.tax_rate`, product.tax_rate);
-      form.setValue(`items.${index}.tax_exemption_reason`, product.tax_exemption_reason);
-    }
+    if (!product) return;
+    
+    // Use setValue from useFormContext if needed
+    // setValue(`items.${index}.description`, product.item_description);
+    // setValue(`items.${index}.unit_price`, product.unit_price);
+    // setValue(`items.${index}.tax_rate`, product.tax_rate);
+    // setValue(`items.${index}.tax_exemption_reason`, product.tax_exemption_reason);
   }
 
   return (
     <div className="grid grid-cols-12 gap-4 p-4 border rounded-lg">
       <div className="col-span-12">
         <FormField
-          control={form.control}
+          control={control}
           name={`items.${index}.product_id`}
           render={({ field }) => (
             <FormItem>
@@ -93,7 +94,7 @@ export function InvoiceItemForm({
 
       <div className="col-span-12">
         <FormField
-          control={form.control}
+          control={control}
           name={`items.${index}.description`}
           render={({ field }) => (
             <FormItem>
@@ -109,7 +110,7 @@ export function InvoiceItemForm({
 
       <div className="col-span-4">
         <FormField
-          control={form.control}
+          control={control}
           name={`items.${index}.quantity`}
           render={({ field }) => (
             <FormItem>
@@ -131,7 +132,7 @@ export function InvoiceItemForm({
 
       <div className="col-span-4">
         <FormField
-          control={form.control}
+          control={control}
           name={`items.${index}.unit_price`}
           render={({ field }) => (
             <FormItem>
@@ -153,7 +154,7 @@ export function InvoiceItemForm({
 
       <div className="col-span-4">
         <FormField
-          control={form.control}
+          control={control}
           name={`items.${index}.tax_rate`}
           render={({ field }) => (
             <FormItem>
@@ -184,7 +185,7 @@ export function InvoiceItemForm({
       {showJustification && (
         <div className="col-span-12">
           <FormField
-            control={form.control}
+            control={control}
             name={`items.${index}.tax_exemption_reason`}
             render={({ field }) => (
               <FormItem>

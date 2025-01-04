@@ -12,16 +12,12 @@ import type { InvoiceFormData } from '../../types';
 export function InvoiceFormFields() {
   const { t } = useTranslation();
   const { clients } = useClients();
-  const form = useFormContext<InvoiceFormData>();
-
-  if (!form) {
-    throw new Error('InvoiceFormFields must be used within a FormProvider');
-  }
+  const { control } = useFormContext<InvoiceFormData>();
 
   return (
     <>
       <FormField
-        control={form.control}
+        control={control}
         name="client_id"
         render={({ field }) => (
           <FormItem>
@@ -34,7 +30,7 @@ export function InvoiceFormFields() {
               </FormControl>
               <SelectContent>
                 {clients?.map((client) => (
-                  <SelectItem key={client.id} value={client.id || ''}>
+                  <SelectItem key={client.id} value={client.id}>
                     {client.company_name}
                   </SelectItem>
                 ))}
@@ -46,7 +42,7 @@ export function InvoiceFormFields() {
 
       <div className="grid grid-cols-2 gap-4">
         <FormField
-          control={form.control}
+          control={control}
           name="currency"
           render={({ field }) => (
             <FormItem>
@@ -70,7 +66,7 @@ export function InvoiceFormFields() {
         />
 
         <FormField
-          control={form.control}
+          control={control}
           name="language"
           render={({ field }) => (
             <FormItem>
@@ -96,29 +92,33 @@ export function InvoiceFormFields() {
 
       <div className="grid grid-cols-2 gap-4">
         <FormField
-          control={form.control}
+          control={control}
           name="issue_date"
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t('Invoices.IssueDate')}</FormLabel>
-              <DatePicker
-                date={field.value}
-                onSelect={field.onChange}
-              />
+              <FormControl>
+                <DatePicker
+                  date={field.value}
+                  onSelect={field.onChange}
+                />
+              </FormControl>
             </FormItem>
           )}
         />
 
         <FormField
-          control={form.control}
+          control={control}
           name="due_date"
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t('Invoices.DueDate')}</FormLabel>
-              <DatePicker
-                date={field.value}
-                onSelect={field.onChange}
-              />
+              <FormControl>
+                <DatePicker
+                  date={field.value}
+                  onSelect={field.onChange}
+                />
+              </FormControl>
             </FormItem>
           )}
         />

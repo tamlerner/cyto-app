@@ -1,11 +1,9 @@
-'use client';
-
 import * as z from 'zod';
 
 export const invoiceSchema = z.object({
   client_id: z.string().min(1, 'Required'),
-  currency: z.string().min(1, 'Required'),
-  language: z.string().min(1, 'Required'),
+  currency: z.enum(['USD', 'EUR', 'AOA']),
+  language: z.enum(['en', 'pt', 'fr', 'es']),
   issue_date: z.date(),
   due_date: z.date(),
   items: z.array(z.object({

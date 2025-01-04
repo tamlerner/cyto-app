@@ -18,10 +18,7 @@ import { UpdateInvoiceStatus } from './update-invoice-status';
 import type { Invoice } from '@/lib/types/invoice';
 
 interface InvoiceTableProps {
-  invoices: Array<Invoice & {
-    client: { company_name: string; email: string; };
-    company: { company_name: string; };
-  }>;
+  invoices: Invoice[];
   onStatusChange?: () => void;
 }
 

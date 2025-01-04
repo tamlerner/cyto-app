@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
 import { useCreateInvoice } from '../../hooks/use-create-invoice';
@@ -10,6 +10,7 @@ import { InvoiceFormFields } from './invoice-form-fields';
 import { InvoiceItemsList } from './invoice-items-list';
 import { InvoiceSummary } from '../invoice-summary';
 import { invoiceSchema } from '../../schemas/invoice-schema';
+import { Button } from '@/components/ui/button';
 import type { InvoiceFormData } from '../../types';
 
 interface CreateInvoiceFormProps {
@@ -22,7 +23,7 @@ export function CreateInvoiceForm({ onSuccess }: CreateInvoiceFormProps) {
   const { createInvoice, loading } = useCreateInvoice();
   const [items, setItems] = useState([{ id: '1' }]);
 
-  const form = useForm<InvoiceFormData>({
+  const methods = useForm<InvoiceFormData>({
     resolver: zodResolver(invoiceSchema),
     defaultValues: {
       issue_date: new Date(),
@@ -33,7 +34,7 @@ export function CreateInvoiceForm({ onSuccess }: CreateInvoiceFormProps) {
     },
   });
 
-  const currency = form.watch('currency');
+  const currency = methods.watch('currency');
 
   async function onSubmit(data: InvoiceFormData) {
     try {
@@ -50,29 +51,26 @@ export function CreateInvoiceForm({ onSuccess }: CreateInvoiceFormProps) {
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      <InvoiceFormFields form={form} />
-      <InvoiceItemsList
-        form={form}
-        items={items}
-        setItems={setItems}
-        currency={currency}
-      />
-      <InvoiceSummary
-        items={form.watch('items') || []}
-        currency={currency}
-      />
-      <div className="sticky bottom-0 bg-background pt-4 pb-2 border-t mt-6">
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            className="btn-primary"
-            disabled={loading}
-          >
-            {loading ? t('Invoices.Creating') : t('Invoices.Create')}
-          </button>
+    <FormProvider {...methods}>
+      <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
+        <InvoiceFormFields />
+        <InvoiceItemsList
+          items={items}
+          setItems={setItems}
+          currency={currency}
+        />
+        <InvoiceSummary
+          items={methods.watch('items') || []}
+          currency={currency}
+        />
+        <div className="sticky bottom-0 bg-background pt-4 pb-2 border-t mt-6">
+          <div className="flex justify-end">
+            <Button type="submit" disabled={loading}>
+              {loading ? t('Invoices.Creating') : t('Invoices.Create')}
+            </Button>
+          </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </FormProvider>
   );
 }
