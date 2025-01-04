@@ -5,9 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Plus } from 'lucide-react';
-import { useClients } from '@/app/clients/hooks/use-clients';
-import { useCreateInvoice } from '../hooks/use-create-invoice';
+import { useAuth } from '@/hooks/use-auth';
+import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -17,7 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -25,11 +24,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 import { DatePicker } from '@/components/ui/date-picker';
 import { InvoiceItemForm } from './invoice-item-form';
 import { InvoiceSummary } from './invoice-summary';
-import { useToast } from '@/hooks/use-toast';
+import { useClients } from '@/app/clients/hooks/use-clients';
 import { SUPPORTED_CURRENCIES, SUPPORTED_LANGUAGES } from '@/lib/constants';
+import { generateInvoiceNumber } from '@/lib/utils/invoice-utils';
 
 const invoiceSchema = z.object({
   client_id: z.string().min(1, 'Required'),
@@ -56,8 +58,9 @@ interface CreateInvoiceFormProps {
 export function CreateInvoiceForm({ onSuccess }: CreateInvoiceFormProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { user } = useAuth();
   const { clients } = useClients();
-  const { createInvoice, loading } = useCreateInvoice();
+  const [loading, setLoading] = useState(false);
   const [items, setItems] = useState([{ id: '1' }]);
 
   const form = useForm<InvoiceFormData>({
@@ -93,17 +96,50 @@ export function CreateInvoiceForm({ onSuccess }: CreateInvoiceFormProps) {
 
   async function onSubmit(data: InvoiceFormData) {
     try {
-      await createInvoice(data);
+      setLoading(true);
+      
+      if (!user) {
+        throw new Error('You must be logged in to create an invoice');
+      }
+
+      const invoice_number = generateInvoiceNumber();
+      const { subtotal, tax_total, total } = calculateTotals(data.items);
+
+      const { error: invoiceError } = await supabase
+        .from('invoices')
+        .insert([{
+          invoice_number,
+          client_id: data.client_id,
+          issue_date: data.issue_date.toISOString(),
+          due_date: data.due_date.toISOString(),
+          currency: data.currency,
+          language: data.language,
+          subtotal,
+          tax_total,
+          total,
+          notes: data.notes,
+          status: 'draft',
+          user_id: user.id
+        }])
+        .select()
+        .single();
+
+      if (invoiceError) throw invoiceError;
+
       toast({
         title: t('Invoices.CreateSuccess'),
       });
+      
       onSuccess?.();
+      form.reset();
     } catch (error) {
       toast({
         variant: 'destructive',
         title: t('Invoices.CreateError'),
         description: error instanceof Error ? error.message : undefined,
       });
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -123,7 +159,7 @@ export function CreateInvoiceForm({ onSuccess }: CreateInvoiceFormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {clients.map((client) => (
+                  {clients?.map((client) => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.company_name}
                     </SelectItem>
@@ -232,7 +268,6 @@ export function CreateInvoiceForm({ onSuccess }: CreateInvoiceFormProps) {
           ))}
           
           <Button type="button" variant="outline" onClick={addItem}>
-            <Plus className="mr-2 h-4 w-4" />
             {t('Invoices.AddItem')}
           </Button>
         </div>
@@ -269,4 +304,18 @@ export function CreateInvoiceForm({ onSuccess }: CreateInvoiceFormProps) {
       </form>
     </Form>
   );
+}
+
+function calculateTotals(items: any[]) {
+  const subtotal = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+  const tax_total = items.reduce((sum, item) => {
+    const itemTotal = item.quantity * item.unit_price;
+    return sum + (itemTotal * item.tax_rate) / 100;
+  }, 0);
+  
+  return {
+    subtotal,
+    tax_total,
+    total: subtotal + tax_total,
+  };
 }

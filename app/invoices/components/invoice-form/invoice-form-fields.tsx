@@ -1,21 +1,22 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
+import { useFormContext } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useClients } from '@/app/clients/hooks/use-clients';
 import { SUPPORTED_CURRENCIES, SUPPORTED_LANGUAGES } from '@/lib/constants';
-import type { UseFormReturn } from 'react-hook-form';
 import type { InvoiceFormData } from '../../types';
 
-interface InvoiceFormFieldsProps {
-  form: UseFormReturn<InvoiceFormData>;
-}
-
-export function InvoiceFormFields({ form }: InvoiceFormFieldsProps) {
+export function InvoiceFormFields() {
   const { t } = useTranslation();
   const { clients } = useClients();
+  const form = useFormContext<InvoiceFormData>();
+
+  if (!form) {
+    throw new Error('InvoiceFormFields must be used within a FormProvider');
+  }
 
   return (
     <>
@@ -33,7 +34,7 @@ export function InvoiceFormFields({ form }: InvoiceFormFieldsProps) {
               </FormControl>
               <SelectContent>
                 {clients?.map((client) => (
-                  <SelectItem key={client.id} value={client.id}>
+                  <SelectItem key={client.id} value={client.id || ''}>
                     {client.company_name}
                   </SelectItem>
                 ))}
