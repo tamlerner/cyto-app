@@ -9,12 +9,13 @@ export async function clearAuthSession() {
       'supabase.auth.token',
       'supabase.auth.refreshToken',
       'supabase.auth.expires_at',
-      'supabase.auth.expires_in'
+      'supabase.auth.expires_in',
+      'supabase.auth.provider-token'
     ];
     
     authKeys.forEach(key => window.localStorage.removeItem(key));
     
-    // Clear session cookie if exists
+    // Clear session cookie
     document.cookie = 'supabase-auth-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     
     return true;
@@ -26,18 +27,22 @@ export async function clearAuthSession() {
 
 export async function signOutUser() {
   try {
-    // First clear all local auth data
+    // Clear local storage and cookies first
     await clearAuthSession();
     
-    // Then sign out from Supabase
+    // Sign out from Supabase with global scope
     const { error } = await supabase.auth.signOut({
-      scope: 'local'
+      scope: 'global'
     });
     
     if (error) throw error;
+    
+    // Wait for cleanup
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     return true;
   } catch (error) {
     console.error('Sign out error:', error);
-    return false;
+    throw error;
   }
 }

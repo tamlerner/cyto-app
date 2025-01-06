@@ -21,7 +21,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         router.replace('/dashboard');
       }
     }
-  }, [user, loading, router, isPublicRoute]);
+  }, [user, loading, router, isPublicRoute, pathname]);
 
   if (loading) {
     return <AuthLoading />;

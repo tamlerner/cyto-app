@@ -1,11 +1,11 @@
+
 'use client';
 
-import { createContext, useEffect, useState } from 'react';
+import { createContext, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '../supabase/client';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useToast } from '@/hooks/use-toast';
-import { signOutUser } from './session';
 
 interface AuthContextType {
   user: User | null;
@@ -24,56 +24,82 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
+  const supabase = createClientComponentClient();
 
+  // Initialize auth state
   useEffect(() => {
     let mounted = true;
 
     async function initializeAuth() {
       try {
-        // Get initial session
         const { data: { session: initialSession } } = await supabase.auth.getSession();
         
         if (mounted) {
           setSession(initialSession);
           setUser(initialSession?.user ?? null);
+          setLoading(false);
         }
-
-        // Set up auth state change listener
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-          if (mounted) {
-            setSession(newSession);
-            setUser(newSession?.user ?? null);
-
-            if (event === 'SIGNED_OUT') {
-              router.push('/login');
-            } else if (event === 'TOKEN_REFRESHED') {
-              // Handle successful token refresh
-              console.log('Auth token refreshed successfully');
-            }
-          }
-        });
-
-        return () => {
-          mounted = false;
-          subscription.unsubscribe();
-        };
       } catch (error) {
         console.error('Auth initialization error:', error);
         if (mounted) {
           setUser(null);
           setSession(null);
-        }
-      } finally {
-        if (mounted) {
           setLoading(false);
         }
       }
     }
 
     initializeAuth();
-  }, [router]);
 
-  async function signIn(email: string, password: string) {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      if (!mounted) return;
+
+      console.log('Auth state change:', event);
+
+      if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setSession(null);
+        router.replace('/login');
+      } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [router, supabase.auth]);
+
+  const signOut = useCallback(async () => {
+    try {
+      // Clear state first
+      setUser(null);
+      setSession(null);
+
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+
+      // Clear local storage
+      window.localStorage.clear();
+      
+      // Force navigation to login
+      router.replace('/login');
+    } catch (error) {
+      console.error('Sign out error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Sign out failed',
+        description: error instanceof Error ? error.message : 'An error occurred'
+      });
+    }
+  }, [router, supabase.auth, toast]);
+
+  const signIn = async (email: string, password: string) => {
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -86,58 +112,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Sign in error:', error);
       throw error;
     }
-  }
+  };
 
-  async function signUp(email: string, password: string) {
+  const signUp = async (email: string, password: string) => {
     try {
       setLoading(true);
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: {
-            email_confirmed: true
-          }
         }
       });
 
-      if (signUpError) throw signUpError;
-      if (!signUpData.user) throw new Error('Failed to create user');
+      if (error) throw error;
 
       toast({
         title: 'Account created successfully',
         description: 'You can now sign in with your credentials'
       });
 
-      router.push('/dashboard');
+      router.push('/login');
     } catch (error) {
       console.error('Sign up error:', error);
       throw error;
     } finally {
       setLoading(false);
     }
-  }
-
-  async function signOut() {
-    try {
-      // Clear state first for better UX
-      setUser(null);
-      setSession(null);
-      
-      // Sign out and clean up
-      await signOutUser();
-      
-      // Force navigation to login
-      router.replace('/login');
-    } catch (error) {
-      console.error('Sign out error:', error);
-      // Even if there's an error, clear state and redirect
-      setUser(null);
-      setSession(null);
-      router.replace('/login');
-    }
-  }
+  };
 
   return (
     <AuthContext.Provider value={{ user, session, signIn, signUp, signOut, loading }}>

@@ -29,5 +29,10 @@ export default function ProtectedLayout({
 
   if (!user) return null;
 
-  return children;
+  return (
+    <>
+      <title>CYTO | Business Suite</title>
+      {children}
+    </>
+  );
 }
