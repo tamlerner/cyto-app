@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -89,7 +90,7 @@
   }
 }
 
-@keyframes spin {
+@keyframes slow-spin {
   from {
     transform: rotate(0deg);
   }
@@ -98,31 +99,8 @@
   }
 }
 
-@keyframes drawPath {
-  0% {
-    opacity: 0;
-    stroke-dasharray: 0 1000;
-  }
-  50% {
-    opacity: 1;
-    stroke-dasharray: 1000 0;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
-@keyframes pulse {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0.8);
+@keyframes draw-path {
+  to {
+    stroke-dashoffset: 0;
   }
 }
