@@ -1,18 +1,18 @@
 'use client';
 
-import { supabase } from '../supabase/client';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export async function handleGoogleSignIn(redirectTo: string) {
   try {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const supabase = createClientComponentClient();
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent'
-        },
-        skipBrowserRedirect: false
+        }
       }
     });
 

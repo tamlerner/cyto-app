@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function AuthLayout({
   children,
@@ -11,12 +12,18 @@ export default function AuthLayout({
 }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const supabase = createClientComponentClient();
 
   useEffect(() => {
-    if (!loading && user) {
-      router.replace('/dashboard');
-    }
-  }, [user, loading, router]);
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!loading && (user || session?.user)) {
+        router.replace('/dashboard');
+      }
+    };
+
+    checkAuth();
+  }, [user, loading, router, supabase]);
 
   if (loading) return null;
   if (user) return null;
