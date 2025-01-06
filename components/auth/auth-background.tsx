@@ -6,7 +6,7 @@ interface AuthBackgroundProps {
 
 export function AuthBackground({ expanded, repeat, cover }: AuthBackgroundProps) {
   return (
-    <div className={`fixed inset-0 ${expanded ? 'h-full' : 'h-screen'} overflow-hidden -z-10`}>
+    <div className={`fixed inset-0 ${expanded ? 'h-full' : 'h-screen'} overflow-hidden -z-9`}>
       <div className="grid grid-cols-3 gap-0">
         {[...Array(12)].map((_, index) => (
           <div key={index} className="w-96 h-96 opacity-5">
