@@ -8,7 +8,7 @@ interface AuthBackgroundProps {
 
 export function AuthBackground({ expanded, repeat, cover }: AuthBackgroundProps) {
   return (
-    <div className={`absolute inset-0 ${expanded ? 'h-full' : 'h-screen'} ${repeat ? 'bg-repeat' : ''} ${cover ? 'bg-cover' : ''} scale-150`}>
+    <div className={`absolute inset-0 ${expanded ? 'h-full' : 'h-screen'} ${repeat ? 'bg-repeat' : ''} ${cover ? 'bg-cover' : ''} scale-150 pointer-events-none`}>
       <svg
         className="absolute w-[300%] h-[300%] -top-1/2 -left-1/2 animate-slow-spin opacity-[0.02] dark:opacity-[0.02]"
         viewBox="0 0 2834.65 2834.65"
