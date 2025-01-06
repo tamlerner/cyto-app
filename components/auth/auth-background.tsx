@@ -6,7 +6,7 @@ interface AuthBackgroundProps {
 
 export function AuthBackground({ expanded, repeat, cover }: AuthBackgroundProps) {
   return (
-    <div className={`fixed inset-0 ${expanded ? 'h-full' : 'h-screen'} overflow-hidden -z-10`}>
+    <div className={`fixed inset-0 ${expanded ? 'h-full' : 'h-screen'} overflow-hidden`}>
       <div className="grid grid-cols-3 gap-0">
         {[...Array(12)].map((_, index) => (
           <div key={index} className="w-96 h-96 opacity-5">
@@ -14,7 +14,7 @@ export function AuthBackground({ expanded, repeat, cover }: AuthBackgroundProps)
               className="w-full h-full"
               style={{ 
                 animation: `spin 4s linear infinite`,
-                animationDelay: `${index * 0.3}s`
+                animationDelay: `${index * 0.8}s`
               }}
               viewBox="0 0 2834.65 2834.65"
             >
@@ -24,7 +24,7 @@ export function AuthBackground({ expanded, repeat, cover }: AuthBackgroundProps)
                   className="stroke-primary"
                   style={{ 
                     animation: `drawPath 2s ease-in-out infinite`,
-                    animationDelay: `${index * 0.3}s`
+                    animationDelay: `${index * 0.8}s`
                   }}
                   strokeWidth="55" 
                   strokeLinecap="round" 
@@ -37,7 +37,7 @@ export function AuthBackground({ expanded, repeat, cover }: AuthBackgroundProps)
                   className="stroke-primary"
                   style={{ 
                     animation: `drawPath 2s ease-in-out infinite`,
-                    animationDelay: `${index * 0.3 + 0.2}s`
+                    animationDelay: `${index * 0.8 + 0.6}s`
                   }}
                   strokeWidth="55" 
                   strokeLinecap="round" 
@@ -48,7 +48,7 @@ export function AuthBackground({ expanded, repeat, cover }: AuthBackgroundProps)
                   className="stroke-primary"
                   style={{ 
                     animation: `drawPath 2s ease-in-out infinite`,
-                    animationDelay: `${index * 0.3 + 0.4}s`
+                    animationDelay: `${index * 0.9 + 1}s`
                   }}
                   strokeWidth="55" 
                   strokeLinecap="round" 
@@ -61,7 +61,7 @@ export function AuthBackground({ expanded, repeat, cover }: AuthBackgroundProps)
                   className="stroke-primary"
                   style={{ 
                     animation: `drawPath 2s ease-in-out infinite`,
-                    animationDelay: `${index * 0.3 + 0.6}s`
+                    animationDelay: `${index * 0.8 + 1.2}s`
                   }}
                   strokeWidth="55" 
                   strokeLinecap="round" 
@@ -72,7 +72,7 @@ export function AuthBackground({ expanded, repeat, cover }: AuthBackgroundProps)
                   className="fill-primary/20"
                   style={{ 
                     animation: `pulse 2s ease-in-out infinite`,
-                    animationDelay: `${index * 0.3 + 0.8}s`
+                    animationDelay: `${index * 0.7 + 0.9}s`
                   }}
                   cx="1414.52" 
                   cy="1423.1" 
