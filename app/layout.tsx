@@ -12,6 +12,8 @@ import { Sidebar } from '@/components/sidebar';
 import { AppHeader } from '@/components/header/app-header';
 import { AuthModal } from '@/components/auth/auth-modal';
 import '@/lib/i18n/init';
+import { metadata } from './metadata'
+export { metadata }
 
 const PUBLIC_ROUTES = ['/login', '/register'];
 
