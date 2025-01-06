@@ -22,6 +22,7 @@ import { AuthContainer } from '@/components/auth/auth-container';
 import { AuthHeader } from '@/components/auth/auth-header';
 import { GoogleAuthButton } from '@/components/auth/google-auth-button';
 import { Separator } from '@/components/ui/separator';
+import { AuthBackground } from '@/components/auth/auth-background'; 
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -61,6 +62,7 @@ export default function LoginPage() {
 
   return (
     <AuthContainer>
+      <AuthBackground expanded repeat cover />
       <AuthHeader 
         title="Auth.WelcomeBack"
         description="Auth.EnterCredentials"

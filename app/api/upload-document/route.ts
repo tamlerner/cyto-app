@@ -4,16 +4,26 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
-  const supabase = createRouteHandlerClient({ cookies });
-  const formData = await request.formData();
-  const file = formData.get('file') as File;
-  const documentType = formData.get('type') as string;
+  try {
+    const supabase = createRouteHandlerClient({ cookies });
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
+    const type = formData.get('type') as string;
+    
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${type}-${Date.now()}.${fileExt}`;
 
-  const fileName = `${documentType}-${Date.now()}`;
-  const { data, error } = await supabase.storage
-    .from('user-documents')
-    .upload(fileName, file);
+    const { data, error } = await supabase.storage
+      .from('user-documents')
+      .upload(fileName, file);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  return NextResponse.json({ data });
+    if (error) throw error;
+    return NextResponse.json({ data });
+    
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error.message }, 
+      { status: 500 }
+    );
+  }
 }
