@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,6 +23,7 @@ import { AuthHeader } from '@/components/auth/auth-header';
 import { GoogleAuthButton } from '@/components/auth/google-auth-button';
 import { Separator } from '@/components/ui/separator';
 import { AuthBackground } from '@/components/auth/auth-background';
+import { NewsletterPopup } from '@/components/newsletter-popup';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -36,6 +37,7 @@ export default function LoginPage() {
   const { signIn } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -44,6 +46,12 @@ export default function LoginPage() {
       password: '',
     },
   });
+
+  useEffect(() => {
+    window.onbeforeunload = () => {
+      return showPopup ? t('Auth.LeavePage') : null;
+    };
+  }, [showPopup]);
 
   async function onSubmit(data: LoginFormData) {
     try {
@@ -135,6 +143,8 @@ export default function LoginPage() {
           </Link>
         </div>
       </div>
+
+      {showPopup && <NewsletterPopup onClose={() => setShowPopup(false)} />}
     </AuthContainer>
   );
 }
