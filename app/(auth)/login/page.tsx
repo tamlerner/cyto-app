@@ -21,9 +21,9 @@ import { useToast } from '@/hooks/use-toast';
 import { AuthContainer } from '@/components/auth/auth-container';
 import { AuthHeader } from '@/components/auth/auth-header';
 import { GoogleAuthButton } from '@/components/auth/google-auth-button';
+import NewsletterCarousel from '@/components/newsletter-carousel';
 import { Separator } from '@/components/ui/separator';
 import { AuthBackground } from '@/components/auth/auth-background';
-import { NewsletterPopup } from '@/components/newsletter-popup';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -37,7 +37,6 @@ export default function LoginPage() {
   const { signIn } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [showPopup, setShowPopup] = useState(false);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -46,12 +45,6 @@ export default function LoginPage() {
       password: '',
     },
   });
-
-  useEffect(() => {
-    window.onbeforeunload = () => {
-      return showPopup ? t('Auth.LeavePage') : null;
-    };
-  }, [showPopup]);
 
   async function onSubmit(data: LoginFormData) {
     try {
@@ -71,80 +64,84 @@ export default function LoginPage() {
   return (
     <AuthContainer>
       <AuthBackground expanded repeat cover />
-      <AuthHeader 
-        title="Auth.WelcomeBack"
-        description="Auth.EnterCredentials"
-      />
+      <div className="space-y-8 w-full max-w-md">
+        <AuthHeader 
+          title="Auth.WelcomeBack"
+          description="Auth.EnterCredentials"
+        />
 
-      <div className="space-y-6">
-        <GoogleAuthButton />
-        
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
+        <div className="space-y-6">
+          <GoogleAuthButton />
+          
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                {t('Auth.OrContinueWith')}
+              </span>
+            </div>
           </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">
-              {t('Auth.OrContinueWith')}
-            </span>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Auth.Email')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="name@example.com"
+                        autoComplete="email"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('Auth.Password')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="••••••••"
+                        autoComplete="current-password"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button className="w-full" type="submit" disabled={loading}>
+                {loading ? t('Auth.SigningIn') : t('Auth.SignIn')}
+              </Button>
+            </form>
+          </Form>
+
+          <div className="text-center text-sm">
+            {t('Auth.NoAccount')}{' '}
+            <Link href="/register" className="text-primary hover:underline">
+              {t('Auth.CreateAccount')}
+            </Link>
           </div>
         </div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('Auth.Email')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="name@example.com"
-                      autoComplete="email"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('Auth.Password')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="••••••••"
-                      autoComplete="current-password"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Button className="w-full" type="submit" disabled={loading}>
-              {loading ? t('Auth.SigningIn') : t('Auth.SignIn')}
-            </Button>
-          </form>
-        </Form>
-
-        <div className="text-center text-sm">
-          {t('Auth.NoAccount')}{' '}
-          <Link href="/register" className="text-primary hover:underline">
-            {t('Auth.CreateAccount')}
-          </Link>
+        <div className="pt-8">
+          <NewsletterCarousel />
         </div>
       </div>
-
-      {showPopup && <NewsletterPopup onClose={() => setShowPopup(false)} />}
     </AuthContainer>
   );
 }
