@@ -43,7 +43,6 @@ export async function generatePDF({ invoice, items }: GeneratePDFProps): Promise
   });
 
   try {
-    // Create the PDF document using React.createElement to avoid JSX parsing issues
     const document = React.createElement(InvoiceDocument, {
       invoice,
       items
