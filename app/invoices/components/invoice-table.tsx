@@ -1,8 +1,8 @@
+
 'use client';
 
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { ArrowDownToLine } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -11,10 +11,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils/currency';
 import { DownloadInvoiceButton } from './download-invoice-button';
 import { UpdateInvoiceStatus } from './update-invoice-status';
+import { InvoicePreview } from './invoice-preview';
 import type { Invoice } from '@/lib/types/invoice';
 
 interface InvoiceTableProps {
@@ -63,14 +63,10 @@ export function InvoiceTable({ invoices, onStatusChange }: InvoiceTableProps) {
                 />
               </TableCell>
               <TableCell>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  asChild
-                >
+                <div className="flex items-center gap-2">
+                  <InvoicePreview invoice={invoice} />
                   <DownloadInvoiceButton invoice={invoice} />
-                </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}

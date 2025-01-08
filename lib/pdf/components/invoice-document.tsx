@@ -3,9 +3,7 @@
 import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer';
 import { format } from 'date-fns';
 import type { Invoice, InvoiceItem } from '@/lib/types';
-import { formatCurrency } from '@/lib/utils/currency';
 
-// Simple styles using only built-in Helvetica font
 const styles = StyleSheet.create({
   page: {
     padding: 30,
@@ -91,6 +89,11 @@ interface InvoiceDocumentProps {
 }
 
 export function InvoiceDocument({ invoice, items }: InvoiceDocumentProps) {
+  if (!invoice?.client || !invoice?.company) {
+    console.error('Missing required invoice data:', { invoice });
+    return null;
+  }
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -135,10 +138,16 @@ export function InvoiceDocument({ invoice, items }: InvoiceDocumentProps) {
               <Text style={styles.description}>{item.description}</Text>
               <Text style={styles.quantity}>{item.quantity}</Text>
               <Text style={styles.price}>
-                {formatCurrency(item.unit_price, invoice.currency)}
+                {new Intl.NumberFormat('en-US', {
+                  style: 'currency',
+                  currency: invoice.currency
+                }).format(item.unit_price)}
               </Text>
               <Text style={styles.amount}>
-                {formatCurrency(item.quantity * item.unit_price, invoice.currency)}
+                {new Intl.NumberFormat('en-US', {
+                  style: 'currency',
+                  currency: invoice.currency
+                }).format(item.quantity * item.unit_price)}
               </Text>
             </View>
           ))}
@@ -148,19 +157,28 @@ export function InvoiceDocument({ invoice, items }: InvoiceDocumentProps) {
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Subtotal:</Text>
             <Text style={styles.totalValue}>
-              {formatCurrency(invoice.subtotal, invoice.currency)}
+              {new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: invoice.currency
+              }).format(invoice.subtotal)}
             </Text>
           </View>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Tax:</Text>
             <Text style={styles.totalValue}>
-              {formatCurrency(invoice.tax_total, invoice.currency)}
+              {new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: invoice.currency
+              }).format(invoice.tax_total)}
             </Text>
           </View>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Total:</Text>
             <Text style={styles.totalValue}>
-              {formatCurrency(invoice.total, invoice.currency)}
+              {new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: invoice.currency
+              }).format(invoice.total)}
             </Text>
           </View>
         </View>

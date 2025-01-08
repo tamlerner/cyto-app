@@ -6,13 +6,30 @@ import { ArrowDownToLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { generatePDF } from '@/lib/pdf/generate-pdf';
-import type { Invoice } from '@/lib/types';
+import type { Invoice, InvoiceItem } from '@/lib/types';
 
 interface DownloadInvoiceButtonProps {
   invoice: Invoice & {
-    items: any[];
-    client: any;
-    company: any;
+    items: InvoiceItem[];
+    client: {
+      company_name: string;
+      tax_id: string;
+      headquarters_address: string;
+      city: string;
+      region: string;
+      postal_code: string;
+      country: string;
+      email: string;
+    };
+    company: {
+      company_name: string;
+      tax_id: string;
+      headquarters_address: string;
+      city: string;
+      region: string;
+      postal_code: string;
+      country: string;
+    };
   };
 }
 
@@ -24,80 +41,77 @@ export function DownloadInvoiceButton({ invoice }: DownloadInvoiceButtonProps) {
   async function handleDownload() {
     if (loading) return;
 
-    if (!invoice || !invoice.items) {
-      toast({
-        variant: 'destructive',
-        title: t('Invoices.DownloadError'),
-        description: 'Invalid invoice data'
-      });
-      return;
-    }
-
-    let url: string | null = null;
-
+    let step = 'start';
     try {
       setLoading(true);
 
-      // Log data before generation
-      console.log('Starting PDF generation with:', {
-        hasInvoice: Boolean(invoice),
-        itemsCount: invoice.items?.length,
-        hasClient: Boolean(invoice.client),
-        hasCompany: Boolean(invoice.company)
+      // Step 1: Validate Data
+      step = 'validation';
+      if (!invoice || !invoice.items || !invoice.client || !invoice.company) {
+        throw new Error('Missing required invoice data');
+      }
+
+      // Log data before PDF generation
+      console.log('Step 1 - Data Validation Passed:', {
+        invoiceNumber: invoice.invoice_number,
+        itemsCount: invoice.items.length,
+        clientName: invoice.client.company_name,
+        companyName: invoice.company.company_name
       });
 
-      // Generate PDF
+      // Step 2: Generate PDF
+      step = 'pdf-generation';
       const blob = await generatePDF({
         invoice,
         items: invoice.items
       });
 
       if (!blob) {
-        throw new Error('PDF generation returned no data');
+        throw new Error('PDF generation failed - no blob returned');
       }
 
-      console.log('PDF generated successfully:', { blobSize: blob.size });
+      console.log('Step 2 - PDF Generated:', {
+        blobSize: blob.size,
+        type: blob.type
+      });
 
-      // Create download URL
-      url = URL.createObjectURL(blob);
+      // Step 3: Create Download URL
+      step = 'url-creation';
+      const url = URL.createObjectURL(blob);
+      console.log('Step 3 - URL Created');
 
-      // Create and trigger download
+      // Step 4: Trigger Download
+      step = 'download';
       const link = document.createElement('a');
-      link.style.display = 'none';
       link.href = url;
       link.download = `invoice-${invoice.invoice_number}.pdf`;
-      
-      // Add to document, click, and remove
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      console.log('Step 4 - Download Triggered');
+
+      // Step 5: Cleanup
+      step = 'cleanup';
+      URL.revokeObjectURL(url);
+      console.log('Step 5 - Cleanup Complete');
 
       toast({
         title: t('Invoices.DownloadSuccess'),
-        description: t('Invoices.DownloadSuccessMessage')
       });
+
     } catch (error) {
-      console.error('Download process failed:', {
+      console.error(`Error at step: ${step}`, {
         error,
         errorType: error?.constructor?.name,
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
+        message: error instanceof Error ? error.message : 'Unknown error'
       });
 
       toast({
         variant: 'destructive',
         title: t('Invoices.DownloadError'),
-        description: error instanceof Error ? error.message : 'Failed to download invoice'
+        description: `Failed at ${step}: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
     } finally {
-      // Cleanup URL if it was created
-      if (url) {
-        try {
-          URL.revokeObjectURL(url);
-        } catch (e) {
-          console.error('Failed to revoke URL:', e);
-        }
-      }
       setLoading(false);
     }
   }

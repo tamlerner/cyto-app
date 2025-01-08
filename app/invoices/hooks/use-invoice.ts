@@ -24,10 +24,33 @@ export function useInvoice(id: string): UseInvoiceReturn {
           throw new Error('Supabase client not initialized');
         }
 
-        // Load invoice
+        // Load invoice with client and company details
         const { data: invoiceData, error: invoiceError } = await supabase
           .from('invoices')
-          .select('*')
+          .select(`
+            *,
+            client:clients(
+              id,
+              company_name,
+              email,
+              tax_id,
+              headquarters_address,
+              city,
+              region,
+              postal_code,
+              country
+            ),
+            company:invoice_companies(
+              id,
+              company_name,
+              tax_id,
+              headquarters_address,
+              city,
+              region,
+              postal_code,
+              country
+            )
+          `)
           .eq('id', id)
           .single();
 
@@ -36,10 +59,20 @@ export function useInvoice(id: string): UseInvoiceReturn {
 
         setInvoice(invoiceData);
 
-        // Load invoice items
+        // Load invoice items with all details
         const { data: itemsData, error: itemsError } = await supabase
           .from('invoice_items')
-          .select('*')
+          .select(`
+            *,
+            unit_price,
+            currency,
+            tax_rate,
+            tax_amount,
+            subtotal,
+            total_with_tax,
+            tax_exemption_reason,
+            unit_of_measure
+          `)
           .eq('invoice_id', id)
           .order('created_at', { ascending: true });
 
@@ -47,6 +80,7 @@ export function useInvoice(id: string): UseInvoiceReturn {
         setItems(itemsData || []);
 
       } catch (err) {
+        console.error('Error loading invoice:', err);
         const message = err instanceof Error ? err.message : 'Failed to load invoice';
         setError(message);
       } finally {

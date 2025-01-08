@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -28,19 +29,17 @@ export function useInvoices() {
           .from('invoices')
           .select(`
             *,
-            client:clients(
-              id,
+            client:clients (
               company_name,
-              email,
               tax_id,
               headquarters_address,
               city,
               region,
               postal_code,
-              country
+              country,
+              email
             ),
-            company:invoice_companies(
-              id,
+            company:invoice_companies (
               company_name,
               tax_id,
               headquarters_address,
@@ -49,7 +48,7 @@ export function useInvoices() {
               postal_code,
               country
             ),
-            items:invoice_items(*)
+            items:invoice_items (*)
           `)
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
@@ -73,25 +72,8 @@ export function useInvoices() {
 
     loadInvoices();
 
-    // Set up real-time subscription
-    const channel = supabase
-      .channel('invoices_changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'invoices',
-          filter: `user_id=eq.${user?.id}`
-        }, 
-        () => {
-          loadInvoices();
-        }
-      )
-      .subscribe();
-
     return () => {
       mounted = false;
-      channel.unsubscribe();
     };
   }, [user]);
 
