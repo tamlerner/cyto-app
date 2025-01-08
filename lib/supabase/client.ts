@@ -1,19 +1,23 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import type { Database } from './types';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+export const supabase = createClientComponentClient<Database>();
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-    flowType: 'pkce'
-  },
-});
+// Add error handling utility
+export const handleSupabaseError = (error: any): string => {
+  console.error('Supabase error details:', error);
+  
+  if (error?.code === 'PGRST301') {
+    return 'Authentication required. Please sign in.';
+  }
+  
+  if (error?.code === '42501') {
+    return 'You do not have permission to perform this action.';
+  }
+  
+  if (error?.message) {
+    return error.message;
+  }
+  
+  return 'An unexpected error occurred';
+};

@@ -75,21 +75,43 @@ export function AddClientForm({ onSuccess }: AddClientFormProps) {
   });
 
   async function onSubmit(data: ClientFormData) {
+    console.log('🟢 Starting client creation:', {
+      hasUser: !!user,
+      userId: user?.id,
+      formData: data
+    });
+
     try {
       setLoading(true);
       
       if (!user) {
+        console.log('🔴 No user found when creating client');
         throw new Error('You must be logged in to add a client');
       }
 
-      const { error } = await supabase.from('clients').insert([
-        {
-          ...data,
-          user_id: user.id,
-        },
-      ]);
+      const clientData = {
+        ...data,
+        user_id: user.id,
+      };
 
-      if (error) throw error;
+      console.log('🟡 Attempting to insert client with data:', {
+        userId: user.id,
+        clientData
+      });
+
+      const { data: insertedData, error } = await supabase
+        .from('clients')
+        .insert([clientData])
+        .select();
+
+      console.log('🟡 Insert response:', { insertedData, error });
+
+      if (error) {
+        console.log('🔴 Insert error:', error);
+        throw error;
+      }
+
+      console.log('🟢 Client created successfully');
 
       toast({
         title: t('Clients.AddSuccess'),
@@ -98,10 +120,11 @@ export function AddClientForm({ onSuccess }: AddClientFormProps) {
       onSuccess?.();
       form.reset();
     } catch (error) {
+      console.error('🔴 Client creation error:', error);
       toast({
         variant: 'destructive',
         title: t('Clients.AddError'),
-        description: error instanceof Error ? error.message : undefined,
+        description: error instanceof Error ? error.message : 'An error occurred while creating the client',
       });
     } finally {
       setLoading(false);

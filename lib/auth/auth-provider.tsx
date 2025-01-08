@@ -28,11 +28,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize auth state
   useEffect(() => {
+    console.log('🔒 AuthProvider: Initializing');
     let mounted = true;
-
+  
     async function initializeAuth() {
+      console.log('🔒 AuthProvider: Getting session');
       try {
         const { data: { session: initialSession } } = await supabase.auth.getSession();
+        console.log('🔒 AuthProvider: Session received', { 
+          hasSession: !!initialSession,
+          userId: initialSession?.user?.id 
+        });
         
         if (mounted) {
           setSession(initialSession);
@@ -40,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setLoading(false);
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
+        console.error('🔒 AuthProvider: Error', error);
         if (mounted) {
           setUser(null);
           setSession(null);
@@ -48,12 +54,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     }
-
+  
     initializeAuth();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      console.log('Auth state change:', event, newSession?.user?.id);
       if (!mounted) return;
 
       console.log('Auth state change:', event);
@@ -140,6 +147,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     }
   };
+
+  
 
   return (
     <AuthContext.Provider value={{ user, session, signIn, signUp, signOut, loading }}>

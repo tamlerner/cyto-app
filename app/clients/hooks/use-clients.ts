@@ -16,6 +16,7 @@ export function useClients() {
   const { t } = useTranslation();
 
   useEffect(() => {
+    console.log('useClients: User ID:', user?.id);
     let mounted = true;
 
     async function loadClients() {
@@ -24,15 +25,19 @@ export function useClients() {
         setError(null);
 
         if (!user) {
+          console.log('useClients: No user, clearing clients');
           setClients([]);
           return;
         }
 
+        console.log('useClients: Fetching for user:', user.id);
         const { data, error: fetchError } = await supabase
           .from('clients')
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
+
+          console.log('useClients: Fetch result:', { data, error: fetchError }); 
 
         if (fetchError) throw fetchError;
         
