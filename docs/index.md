@@ -50,7 +50,7 @@ app/
 ├── invoices/       # Invoice management
 ├── products/       # Product management
 └── settings/       # User settings
-
+```
 
 The frontend leverages modern development practices like component-based architecture, React Context, and custom hooks to manage state efficiently.
 
