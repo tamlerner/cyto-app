@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Check, ChevronsUpDown, Plus, X } from 'lucide-react';
@@ -220,7 +220,7 @@ export function CompanyInfoForm() {
     form.setValue('region', address.address.state);
     form.setValue('country', address.address.country);
     form.setValue('postal_code', address.address.postcode);
-    setAddressSearchOpen(false);
+    setAddressSearchOpen(true);
     setSearchValue(fullAddress);
   };
 
@@ -463,50 +463,6 @@ export function CompanyInfoForm() {
            <h3 className="text-lg font-medium border-b pb-2">{t('Settings.Company.Sections.Address')}</h3>
           
           <div className="space-y-4 max-w-xl">
-            <Popover open={addressSearchOpen} onOpenChange={setAddressSearchOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={addressSearchOpen}
-                  className="w-full justify-between"
-                >
-                  {searchValue || t('Settings.Company.Fields.SearchForAddress')}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[400px] p-0">
-                <Command>
-                  <CommandInput 
-                    placeholder={t('Settings.Company.Fields.TypeToSearch')}
-                    value={searchValue}
-                    onValueChange={handleAddressSearch}
-                  />
-                  <CommandEmpty>
-                    {isLoading ? (
-                      <div className="p-2 text-sm text-muted-foreground">{t('Messages.Searching')}</div>
-                    ) : (
-                      <div className="p-2 text-sm text-muted-foreground">{t('Messages.NoAddressFound')}</div>
-                    )}
-                  </CommandEmpty>
-                  <CommandGroup>
-                    {addressResults.map((address, index) => (
-                      <CommandItem
-                        key={index}
-                        onSelect={() => handleAddressSelect(address)}
-                        className="cursor-pointer"
-                      >
-                        <div className="flex flex-col">
-                          <span>{address.display_name}</span>
-                        </div>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            </Popover>
-
             <FormField
               control={form.control}
               name="headquarters_address"
