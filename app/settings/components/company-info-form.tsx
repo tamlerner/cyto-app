@@ -50,8 +50,7 @@ type BankAccount = {
 interface AddressResult {
   display_name: string;
   address: {
-    road: string;
-    house_number: string;
+    fulladdress: string;
     city: string;
     state: string;
     country: string;
@@ -164,66 +163,7 @@ export function CompanyInfoForm() {
     };
   };
 
-  const handleAddressSearch = async (value: string) => {
-    setSearchValue(value);
-    if (value.length < 3) {
-      setAddressResults([]);
-      return;
-    }
   
-    setIsLoading(true);
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(value)}&addressdetails=1&limit=5`,
-        {
-          headers: {
-            'Accept-Language': 'en-US'
-          }
-        }
-      );
-      
-      if (!response.ok) throw new Error('Network response was not ok');
-      
-      const data = await response.json();
-      const formattedResults = data.map((item: any) => ({
-        display_name: item.display_name,
-        address: {
-          road: item.address?.road || '',
-          house_number: item.address?.house_number || '',
-          city: item.address?.city || item.address?.town || '',
-          state: item.address?.state || '',
-          country: item.address?.country || '',
-          postcode: item.address?.postcode || ''
-        }
-      }));
-      
-      setAddressResults(formattedResults);
-    } catch (error) {
-      console.error('Error searching address:', error);
-      toast({
-        variant: 'destructive',
-        title: t('Messages.Error'),
-        description: t('Messages.FailedToSearchAddress')
-      });
-      setAddressResults([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const handleAddressSelect = (address: AddressResult) => {
-    const streetNumber = address.address.house_number ? ` ${address.address.house_number}` : '';
-    const fullAddress = `${address.address.road}${streetNumber}`.trim();
-    
-    form.setValue('headquarters_address', fullAddress);
-    form.setValue('city', address.address.city);
-    form.setValue('region', address.address.state);
-    form.setValue('country', address.address.country);
-    form.setValue('postal_code', address.address.postcode);
-    setAddressSearchOpen(true);
-    setSearchValue(fullAddress);
-  };
-
   const addBankAccount = () => {
     if (bankAccounts.length >= 3) return;
     setBankAccounts([...bankAccounts, { 
