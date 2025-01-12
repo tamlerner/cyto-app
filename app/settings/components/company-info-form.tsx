@@ -63,7 +63,7 @@ const companyFormSchema = z.object({
   trade_name: z.string().nullable(),
   tax_id: z.string().min(1, 'Tax ID is required'),
   economic_activity_code: z.string().nullable(),
-  share_capital: z.number().nullable(),
+  share_capital: z.number().default(0),
   share_capital_currency: z.enum(['USD', 'EUR', 'AOA']).default('USD'),
   commercial_registration_number: z.string().nullable(),
   commercial_registration_country: z.string().nullable(),
