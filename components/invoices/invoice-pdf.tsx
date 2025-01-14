@@ -2,6 +2,7 @@ import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer';
 import { SUPPORTED_CURRENCIES } from '@/lib/constants';
 import type { Invoice } from '@/lib/types';
 
+
 const styles = StyleSheet.create({
   page: {
     padding: 40,
@@ -274,3 +275,4 @@ export default function InvoicePDF({ invoice }: { invoice: Invoice }) {
     </Document>
   );
 }
+
