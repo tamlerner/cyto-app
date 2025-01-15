@@ -2,11 +2,24 @@
 
 import { useTranslation } from 'react-i18next';
 import { useFormContext } from 'react-hook-form';
-import { FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectSeparator,
+} from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useClients } from '@/app/clients/hooks/use-clients';
 import { SUPPORTED_CURRENCIES, SUPPORTED_LANGUAGES } from '@/lib/constants';
+import { Plus } from 'lucide-react'; // Icon for "+ Create New Client"
 import type { InvoiceFormData } from '../../types';
 
 export function InvoiceFormFields() {
@@ -16,13 +29,23 @@ export function InvoiceFormFields() {
 
   return (
     <>
+      {/* Client Selection */}
       <FormField
         control={control}
         name="client_id"
         render={({ field }) => (
           <FormItem>
             <FormLabel>{t('Clients.CompanyName')}</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select
+              onValueChange={(value) => {
+                if (value === 'new') {
+                  window.location.href = '/clients'; // Redirect to the create new client page
+                } else {
+                  field.onChange(value);
+                }
+              }}
+              value={field.value}
+            >
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder={t('Invoices.SelectClient')} />
@@ -34,12 +57,18 @@ export function InvoiceFormFields() {
                     {client.company_name}
                   </SelectItem>
                 ))}
+                <SelectSeparator className="my-2" />
+                <SelectItem value="new" className="text-primary font-medium">
+                  <Plus className="mr-2 h-4 w-4 inline" />
+                  {t('Clients.CreateNew')}
+                </SelectItem>
               </SelectContent>
             </Select>
           </FormItem>
         )}
       />
 
+      {/* Currency and Language */}
       <div className="grid grid-cols-2 gap-4">
         <FormField
           control={control}
@@ -90,6 +119,7 @@ export function InvoiceFormFields() {
         />
       </div>
 
+      {/* Issue Date and Due Date */}
       <div className="grid grid-cols-2 gap-4">
         <FormField
           control={control}
@@ -98,10 +128,7 @@ export function InvoiceFormFields() {
             <FormItem>
               <FormLabel>{t('Invoices.IssueDate')}</FormLabel>
               <FormControl>
-                <DatePicker
-                  date={field.value}
-                  onSelect={field.onChange}
-                />
+                <DatePicker date={field.value} onSelect={field.onChange} />
               </FormControl>
             </FormItem>
           )}
@@ -114,10 +141,7 @@ export function InvoiceFormFields() {
             <FormItem>
               <FormLabel>{t('Invoices.DueDate')}</FormLabel>
               <FormControl>
-                <DatePicker
-                  date={field.value}
-                  onSelect={field.onChange}
-                />
+                <DatePicker date={field.value} onSelect={field.onChange} />
               </FormControl>
             </FormItem>
           )}
