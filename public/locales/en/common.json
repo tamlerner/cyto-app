@@ -55,6 +55,8 @@
   "Invoices.Number": "Invoice Number",
   "Invoices.IssueDate": "Issue Date",
   "Invoices.DueDate": "Due Date",
+  "Invoices.SelectProduct": "Product or Service",
+  "Invoices.SelectOrCreate": "Select or Create",
   "Invoices.Total": "Total",
   "Invoices.Status": {
     "Label": "Status",
@@ -63,6 +65,7 @@
     "paid": "Paid",
     "overdue": "Overdue",
     "voided": "Voided"
+
   },
   "Invoices.Download": "Download Invoice",
   "Invoices.Downloading": "Downloading Invoice...",

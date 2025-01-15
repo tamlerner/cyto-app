@@ -5,8 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { ArrowDownToLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { generatePDF } from '@/lib/pdf/generate-pdf';
-import type { Invoice, InvoiceItem } from '@/lib/types';
+import type { Invoice } from '@/lib/types';
+import InvoicePDF from './invoice-pdf';
 
 interface DownloadInvoiceButtonProps {
   invoice: Invoice & {
@@ -71,7 +71,7 @@ export function DownloadInvoiceButton({ invoice }: DownloadInvoiceButtonProps) {
       }
 
       console.log('Generating PDF...');
-      const blob = await generatePDF({
+      const blob = await InvoicePDF({
         invoice,
         items: invoice.items
       });

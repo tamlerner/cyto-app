@@ -54,6 +54,8 @@
   "Invoices.Number": "Numéro de Facture",
   "Invoices.IssueDate": "Date d'Émission",
   "Invoices.DueDate": "Date d'Échéance",
+  "Invoices.SelectProduct": "Produit ou Service",
+  "Invoices.SelectOrCreate": "Selection ou Création",
   "Invoices.Total": "Total",
   "Invoices.Status": {
     "Label": "Statut",
