@@ -56,6 +56,7 @@
   "Invoices.DueDate": "Date d'Échéance",
   "Invoices.SelectProduct": "Produit ou Service",
   "Invoices.SelectOrCreate": "Selection ou Création",
+  "Invoices.Quantity": "Quantité",
   "Invoices.Total": "Total",
   "Invoices.Status": {
     "Label": "Statut",
