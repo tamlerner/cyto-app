@@ -2,7 +2,7 @@
 
 import { useTranslation } from 'react-i18next';
 import { useFormContext } from 'react-hook-form';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Plus } from 'lucide-react';
 import {
   FormControl,
   FormField,
@@ -15,6 +15,7 @@ import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -40,8 +41,8 @@ export function InvoiceItemForm({
 }: InvoiceItemFormProps) {
   const { t } = useTranslation();
   const { products } = useProducts();
-  const { control, watch } = useFormContext<InvoiceFormData>();
-  
+  const { control, setValue, watch } = useFormContext<InvoiceFormData>();
+
   const taxRate = watch(`items.${index}.tax_rate`);
   const showJustification = Number(taxRate) === 0;
   const currencySymbol = SUPPORTED_CURRENCIES.find(c => c.code === currency)?.symbol || '';
@@ -49,13 +50,13 @@ export function InvoiceItemForm({
   function handleProductSelect(productId: string) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
-    
-    // Use setValue from useFormContext if needed
-    // setValue(`items.${index}.description`, product.item_description);
-    // setValue(`items.${index}.unit_price`, product.unit_price);
-    // setValue(`items.${index}.tax_rate`, product.tax_rate);
-    // setValue(`items.${index}.tax_exemption_reason`, product.tax_exemption_reason);
+  
+    // Update form fields with the selected product's details
+    setValue(`items.${index}.description`, product.item_description || '');
+    setValue(`items.${index}.unit_price`, product.unit_price || 0);
+    // Add more fields if needed
   }
+  
 
   return (
     <div className="grid grid-cols-12 gap-4 p-4 border rounded-lg">
@@ -68,8 +69,12 @@ export function InvoiceItemForm({
               <FormLabel>{t('Invoices.SelectProduct')}</FormLabel>
               <Select
                 onValueChange={(value) => {
-                  field.onChange(value);
-                  handleProductSelect(value);
+                  if (value === 'new') {
+                    window.location.href = '/products'; // Redirect to the Products page
+                  } else {
+                    field.onChange(value);
+                    handleProductSelect(value);
+                  }
                 }}
                 value={field.value}
               >
@@ -84,6 +89,11 @@ export function InvoiceItemForm({
                       {product.item_description}
                     </SelectItem>
                   ))}
+                  <SelectSeparator className="my-2" />
+                  <SelectItem value="new" className="text-primary font-medium">
+                    <Plus className="mr-2 h-4 w-4 inline" />
+                    {t('Products.CreateNew')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
