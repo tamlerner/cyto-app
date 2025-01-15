@@ -9,7 +9,8 @@
 
   "Clients": "Clients",
   "Clients.Description": "Manage your client information",
-  "Clients.Add": "Add Client",
+  "Clients.Add": "Add a Client",
+  "Clients.CreateNew" : "Add a Client" , 
   "Clients.CompanyName": "Company Name",
   "Clients.TradeName": "Trade Name",
   "Clients.TaxId": "Tax ID",
@@ -30,6 +31,7 @@
   "Products": "Products & Services",
   "Products.Description": "Manage your products and services catalog",
   "Products.Add": "Add Product/Service",
+  "Products.CreateNew" : "Add Product/Service" ,
   "Products.NoProducts": "No products or services found",
   "Products.ItemDescription": "Description",
   "Products.UnitPrice": "Price",
