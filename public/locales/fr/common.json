@@ -26,6 +26,18 @@
   "Clients.AddSuccess": "Client ajouté avec succès",
   "Clients.AddError": "Erreur lors de l'ajout du client",
   "Clients.PreferredCurrency": "Devise Préférée",
+  "Clients.BulkImport": "Importation Groupée",
+  "Clients.ImportCSV": "Importation CSV",
+
+  "ImportCSV": "Importation CSV",
+  "Importing": "Importation en cours...",
+  "ImportSuccess": "Importation Réussie",
+  "ImportError": "Erreur d'Importation",
+  "ImportingProgress": "Importation... {{progress}}%",
+  "ValidationErrors": "Erreur de Validation",
+  "CSVFormat": "Format CSV",
+  "CSVFormatDescription": "Votre fichier CSV doit inclure les colonnes suivantes. Les champs obligatoires sont marqués *:",
+  "AddManually": "Ajouter Mannuellement",
 
   "Products": "Produits et Services",
   "Products.Description": "Gérez votre catalogue de produits et services",
@@ -48,6 +60,8 @@
   "Products.DeleteSuccess": "Produit/Service supprimé avec succès",
   "Products.DeleteError": "Erreur lors de la suppression du produit/service",
   "Products.DeleteConfirm": "Êtes-vous sûr de vouloir supprimer ce produit/service ?",
+  "Products.BulkImport": "Importation Groupée",
+  "Products.ImportCSV": "Importation CSV",
 
   "Invoices": "Factures",
   "Invoices.Description": "Gérez vos factures",
@@ -113,7 +127,8 @@
     "Delete": "Supprimer",
     "Deleting": "Suppression...",
     "Edit": "Modifier",
-    "Editing": "Modification..."
+    "Editing": "Modification...",
+    "Create": "Enregistrer"
   },
 
   "Upgrade": {
