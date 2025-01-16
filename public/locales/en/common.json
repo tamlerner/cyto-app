@@ -26,7 +26,17 @@
   "Clients.AccountManager": "Account Manager",
   "Clients.AddSuccess": "Client added successfully",
   "Clients.AddError": "Failed to add client",
+  
   "Clients.PreferredCurrency": "Preferred Currency",
+  "ImportCSV": "Import CSV",
+  "Importing": "Importing...",
+  "ImportSuccess": "Import Successful",
+  "ImportError": "Import Failed",
+  "ImportingProgress": "Importing... {{progress}}%",
+  "ValidationErrors": "Validation Errors",
+  "CSVFormat": "CSV Format",
+  "CSVFormatDescription": "Your CSV file should include the following columns. Required fields are marked with *:",
+  "AddManually": "Add Manually",
 
   "Products": "Products & Services",
   "Products.Description": "Manage your products and services catalog",

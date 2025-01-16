@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { PageHeader } from '@/components/page-header';
 import { ClientList } from './components/client-list';
 import { AddClientDialog } from './components/add-client-dialog';
+import { BulkImportDialog } from './components/bulk-import-dialog';
 
 export default function ClientsPage() {
   const { t } = useTranslation();
@@ -13,7 +14,12 @@ export default function ClientsPage() {
       <PageHeader
         title={t('Clients')}
         description={t('Clients.Description')}
-        action={<AddClientDialog />}
+        action={
+          <div className="flex gap-2">
+            <AddClientDialog />
+            <BulkImportDialog />
+          </div>
+        }
       />
       <ClientList />
     </div>
