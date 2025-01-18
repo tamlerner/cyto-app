@@ -6,18 +6,12 @@ import { useInvoices } from '../hooks/use-invoices';
 import { InvoiceTable } from './invoice-table';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export function InvoiceList() {
+export function InvoiceList({ invoices }) {
   const { t } = useTranslation();
-  const { invoices, loading, error } = useInvoices();
+  const { loading, error } = useInvoices();
 
   if (loading) {
-    return (
-      <div className="space-y-3">
-        <Skeleton className="h-20 w-full" />
-        <Skeleton className="h-20 w-full" />
-        <Skeleton className="h-20 w-full" />
-      </div>
-    );
+    return <Skeleton className="h-20 w-full" />;
   }
 
   if (error) {
