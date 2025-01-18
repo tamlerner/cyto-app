@@ -98,6 +98,7 @@ export function CompanyInfoForm() {
   const [addressResults, setAddressResults] = useState<AddressResult[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
 
   const form = useForm({
     resolver: zodResolver(companyFormSchema),
@@ -245,6 +246,31 @@ export function CompanyInfoForm() {
         throw fetchError;
       }
 
+      // Upload logo if selected
+      if (logoFile) {
+        const safeFileName = logoFile.name.replace(/\s+/g, '_');
+        const { data, error: uploadError } = await supabase.storage
+          .from('company_logos')
+          .upload(`public/${user.id}/${safeFileName}`, logoFile, {
+            cacheControl: '3600',
+            upsert: true,
+          });
+
+        if (uploadError) {
+          console.error('Error uploading logo:', uploadError);
+          throw uploadError;
+        }
+
+        // Get the public URL
+        const logoUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/company_logos/public/${user.id}/${safeFileName}`;
+        console.log('Logo uploaded successfully, URL:', logoUrl);
+
+        // Add the logo URL to the company data
+        companyData.logo_url = logoUrl;
+      } else {
+        console.log('No logo file selected for upload.');
+      }
+
       const { error, data } = await supabase
         .from('invoice_companies')
         [existingCompany ? 'update' : 'insert'](companyData)
@@ -273,13 +299,10 @@ export function CompanyInfoForm() {
   };
 
   return (
-    <Form {...form}>
+    <FormProvider {...form}>
       <form 
         onSubmit={(e) => {
           e.preventDefault();
-          console.log('Form submitted');
-          const formValues = form.getValues();
-          console.log('Form values:', formValues);
           form.handleSubmit(onSubmit)(e);
         }} 
         className="space-y-8 max-w-2xl mx-auto"
@@ -533,11 +556,28 @@ export function CompanyInfoForm() {
           </div>
         </div>
 
-        {/* Banking Information */}
+        {/* Move Logo Upload Field Above Banking Information */}
+        <div>
+          <label htmlFor="logo_upload" className="block text-sm font-medium text-gray-700">
+            Upload Company Logo (PNG/JPG)
+          </label>
+          <input
+            id="logo_upload"
+            type="file"
+            accept=".png, .jpg, .jpeg"
+            onChange={(e) => {
+              if (e.target.files && e.target.files[0]) {
+                setLogoFile(e.target.files[0]);
+              }
+            }}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50"
+          />
+        </div>
+
+        {/* Banking Information Section */}
         <div className="space-y-4">
           <div className="flex justify-between items-center border-b pb-2">
-           <h3 className="text-lg font-medium">{t('Settings.Company.Sections.Banking')}</h3>
-
+            <h3 className="text-lg font-medium">{t('Settings.Company.Sections.Banking')}</h3>
             <Button 
               type="button" 
               variant="outline" 
@@ -601,10 +641,10 @@ export function CompanyInfoForm() {
           </div>
         </div>
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? t('Settings.Company.Actions.Saving') : t('Settings.Company.Actions.SaveChanges')}
-</Button>
+        <Button type="submit" className="w-full bg-blue-500 text-white py-2 rounded">
+          Save Changes
+        </Button>
       </form>
-    </Form>
+    </FormProvider>
   );
 }
