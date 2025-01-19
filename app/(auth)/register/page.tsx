@@ -27,6 +27,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { CytoTitle } from '@/components/ui/cyto-title';
 import { Progress } from '@/components/ui/progress';
 import { registerSchema, type RegisterFormData } from '@/lib/validations/auth';
+import { generateComplexPassword } from '@/components/auth/auth-generate-password'; // Ensure this path is correct
 
 const steps = [
   { title: 'Account', icon: User },
@@ -55,7 +56,6 @@ export default function RegisterPage() {
       phoneNumber: '',
       countryCode: '+244',
       password: '',
-      confirmPassword: '',
     },
   });
 
@@ -68,9 +68,10 @@ export default function RegisterPage() {
   const handleEmailVerification = async () => {
     try {
       setLoading(true);
+      const password = generateComplexPassword();
       const { error } = await supabase.auth.signUp({
         email: form.getValues('email'),
-        password: form.getValues('password'),
+        password: password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         }
@@ -213,48 +214,7 @@ export default function RegisterPage() {
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium flex items-center gap-2">
-                          <Lock className="w-4 h-4" />
-                          {t('Auth.Password')}
-                        </FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field}
-                            type="password"
-                            className="h-11"
-                            placeholder="Create a strong password"
-                          />
-                        </FormControl>
-                        <FormMessage className="text-xs" />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium flex items-center gap-2">
-                          <Lock className="w-4 h-4" />
-                          {t('Auth.ConfirmPassword')}
-                        </FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field}
-                            type="password"
-                            className="h-11"
-                            placeholder="Confirm your password"
-                          />
-                        </FormControl>
-                        <FormMessage className="text-xs" />
-                      </FormItem>
-                    )}
-                  />
+                  
                   <Button 
                     onClick={handleEmailVerification}
                     className="w-full h-11 mt-6 font-medium"
