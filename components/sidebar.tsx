@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
-import { Building2, FileText, Users, Package, Settings } from 'lucide-react';
+import { Building2, FileText, Users, Package, Settings, Wallet } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from './ui/button';
 import { useAuth } from '@/hooks/use-auth';
@@ -38,6 +38,12 @@ export function Sidebar() {
           <Button variant="ghost" className="w-full justify-start">
             <FileText className="mr-2 h-4 w-4" />
             {t('Invoices')}
+          </Button>
+        </Link>
+        <Link href="/payroll" passHref>
+          <Button variant="ghost" className="w-full justify-start">
+            <Wallet className="mr-2 h-4 w-4" />
+            {t('Payroll')}
           </Button>
         </Link>
         <Link href="/settings" passHref>
