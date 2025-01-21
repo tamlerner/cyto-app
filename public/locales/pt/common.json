@@ -92,6 +92,7 @@
   "Invoices.SelectClient": "Selecionar Cliente",
   "Invoices.Creating": "Criando fatura...",
   "Invoices.CreateSuccess": "Fatura criada com sucesso",
+  "Invoices.RefreshSuccess": "Lista de Facturas atualizada com sucesso",
   "Invoices.CreateError": "Erro ao criar fatura",
   "Invoices.Subtotal": "Subtotal",
   "Invoices.TaxTotal": "Total de Impostos",

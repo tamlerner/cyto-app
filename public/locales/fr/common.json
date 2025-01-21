@@ -93,6 +93,7 @@
   "Invoices.Creating": "Création de la facture...",
   "Invoices.CreateSuccess": "Facture créée avec succès",
   "Invoices.CreateError": "Erreur lors de la création de la facture",
+  "Invoices.RefreshSuccess": "Liste de Factures mise à jour avec succès",
   "Invoices.Subtotal": "Sous-total",
   "Invoices.TaxTotal": "Total TVA",
   "Invoices.AddItem": "Ajouter un Article",

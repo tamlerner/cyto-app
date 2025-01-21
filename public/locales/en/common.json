@@ -101,6 +101,7 @@
   "Invoices.Creating": "Creating invoice...",
   "Invoices.CreateSuccess": "Invoice created successfully",
   "Invoices.UpdateSuccess": "Invoice list successfully updated",
+  "Invoices.RefreshSuccess": "Invoice list successfully updated",
   "Invoices.UpdateError": "Error in refreshing invoice list",
   "Invoices.CreateError": "Failed to create invoice",
   "Invoices.Subtotal": "Subtotal",
