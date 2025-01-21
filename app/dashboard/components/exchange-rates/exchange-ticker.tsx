@@ -12,9 +12,11 @@ interface ExchangeTickerProps {
 
 export function ExchangeTicker({ fromCurrency, toCurrency, rate, change }: ExchangeTickerProps) {
   const isPositive = change >= 0;
-  
+  const changeClass = isPositive ? 'text-green-500' : 'text-red-500';
+  const transitionClass = 'transition-all duration-300 ease-in-out transform hover:scale-105';
+
   return (
-    <Card>
+    <Card className={transitionClass}>
       <CardContent className="flex items-center justify-between p-4">
         <div>
           <div className="text-sm text-muted-foreground">
@@ -24,8 +26,12 @@ export function ExchangeTicker({ fromCurrency, toCurrency, rate, change }: Excha
             {rate.toFixed(4)}
           </div>
         </div>
-        <div className={`flex items-center ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
-          {isPositive ? <ArrowUpIcon className="h-4 w-4" /> : <ArrowDownIcon className="h-4 w-4" />}
+        <div className={`flex items-center ${changeClass}`}>
+          {isPositive ? (
+            <ArrowUpIcon className="h-4 w-4 animate-bounce" />
+          ) : (
+            <ArrowDownIcon className="h-4 w-4 animate-bounce" />
+          )}
           <span className="ml-1">{Math.abs(change).toFixed(2)}%</span>
         </div>
       </CardContent>
