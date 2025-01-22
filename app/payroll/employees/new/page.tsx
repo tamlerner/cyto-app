@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { CalendarIcon, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
+import { useAuth } from '@/hooks/use-auth';
+import { addYears, startOfDay, isAfter } from 'date-fns';
+
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -40,6 +43,8 @@ import { supabase, handleSupabaseError } from '@/lib/supabase/client';
 export default function NewEmployeePage() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { user } = useAuth();
+  const maxBirthDate = startOfDay(addYears(new Date(), -18));
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
@@ -71,6 +76,7 @@ export default function NewEmployeePage() {
       const { error } = await supabase
         .from('employees')
         .insert([{
+          user_id: user?.id,
           first_name: formData.firstName,
           last_name: formData.lastName,
           email: formData.email,
@@ -194,19 +200,36 @@ export default function NewEmployeePage() {
                           className={!formData.dateOfBirth ? "text-muted-foreground" : ""}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {formData.dateOfBirth ? format(formData.dateOfBirth, 'PPP') : <span>Pick a date</span>}
+                          {formData.dateOfBirth
+                            ? format(formData.dateOfBirth, 'PPP')
+                            : <span>{t('Pick a date')}</span>}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
                         <Calendar
                           mode="single"
                           selected={formData.dateOfBirth}
-                          onSelect={(date) => handleInputChange('dateOfBirth', date)}
+                          onSelect={(date) => {
+                            if (date && isAfter(date, maxBirthDate)) {
+                              toast({
+                                variant: 'destructive',
+                                title: t('Invalid Date'),
+                                description: t('Employee must be at least 18 years old'),
+                              });
+                              return;
+                            }
+                            handleInputChange('dateOfBirth', date);
+                          }}
+                          disabled={(date) => isAfter(date, maxBirthDate)}
                           initialFocus
+                          captionLayout="dropdown-buttons" // Enable dropdown for year and month
+                          fromYear={1950} // Set the earliest selectable year
+                          toYear={new Date().getFullYear() - 18} // Limit to 18 years ago
                         />
                       </PopoverContent>
                     </Popover>
                   </div>
+
                   <div className="space-y-2">
                     <label className="text-sm font-medium">{t('Emergency Contact')}</label>
                     <Input
