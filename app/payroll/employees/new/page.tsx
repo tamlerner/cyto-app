@@ -223,7 +223,7 @@ export default function NewEmployeePage() {
                           disabled={(date) => isAfter(date, maxBirthDate)}
                           initialFocus
                           captionLayout="dropdown-buttons" // Enable dropdown for year and month
-                          fromYear={1950} // Set the earliest selectable year
+                          fromYear={1900} // Set the earliest selectable year
                           toYear={new Date().getFullYear() - 18} // Limit to 18 years ago
                         />
                       </PopoverContent>
