@@ -118,14 +118,14 @@ const PayrollDashboard = () => {
             <Users className="mr-2 h-4 w-4" />
             {t('Employee Management')}
           </TabsTrigger>
-          <TabsTrigger value="payroll">
-            <WalletCards className="mr-2 h-4 w-4" />
-            {t('Payroll Management')}
-          </TabsTrigger>
+          <TabsTrigger value="payroll" className="opacity-50 cursor-not-allowed" title="Coming Soon">
+          <WalletCards className="mr-2 h-4 w-4" />
+          {t('Payroll Management')}
+        </TabsTrigger>
           <TabsTrigger value="reports">
             <BarChart3 className="mr-2 h-4 w-4" />
             {t('Reports & Analytics')}
-          </TabsTrigger>
+          </TabsTrigger> 
         </TabsList>
 
         <TabsContent value="employees" className="space-y-4">
@@ -185,12 +185,12 @@ const PayrollDashboard = () => {
         </TabsContent>
 
         <TabsContent value="payroll" className="space-y-4">
-          <div className="flex justify-end mb-4">
-            <Button onClick={handleRunPayroll}>
-              <WalletCards className="mr-2 h-4 w-4" />
-              {t('Run Payroll')}
-            </Button>
+          <div className="text-center py-12 text-muted-foreground">
+            <WalletCards className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <h3 className="text-lg font-medium mb-2">{t('Coming Soon')}</h3>
+            <p>{t('Payroll management features will be available soon')}</p>
           </div>
+        </TabsContent>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Card>
