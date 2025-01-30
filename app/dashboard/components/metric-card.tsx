@@ -2,16 +2,21 @@
 
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LucideIcon } from 'lucide-react';
+import { DivideIcon as LucideIcon, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 interface MetricCardProps {
   title: string;
   value: string;
   icon: LucideIcon;
   href?: string;
+  trend?: {
+    value: number;
+    positive: boolean;
+    label: string;
+  };
 }
 
-export function MetricCard({ title, value, icon: Icon, href }: MetricCardProps) {
+export function MetricCard({ title, value, icon: Icon, href, trend }: MetricCardProps) {
   const router = useRouter();
 
   const handleClick = () => {
@@ -33,6 +38,20 @@ export function MetricCard({ title, value, icon: Icon, href }: MetricCardProps) 
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
+        {trend && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {trend.positive ? (
+              <ArrowUpRight className="w-3 h-3 inline text-green-500" />
+            ) : (
+              <ArrowDownRight className="w-3 h-3 inline text-red-500" />
+            )}
+            <span className={trend.positive ? 'text-green-500' : 'text-red-500'}>
+              {trend.value}%
+            </span>
+            {' '}
+            <span className="text-muted-foreground">{trend.label}</span>
+          </p>
+        )}
       </CardContent>
     </Card>
   );

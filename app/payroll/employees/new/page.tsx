@@ -3,21 +3,20 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { CalendarIcon, ArrowLeft } from 'lucide-react';
-import { format } from 'date-fns';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { useAuth } from '@/hooks/use-auth';
-import { addYears, startOfDay, isAfter } from 'date-fns';
-
-
+import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -26,411 +25,464 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { toast } from '@/components/ui/use-toast';
-import { supabase, handleSupabaseError } from '@/lib/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { PageHeader } from '@/components/page-header';
+import { Card, CardContent } from '@/components/ui/card';
+import { DatePicker } from '@/components/ui/date-picker';
+
+const employeeSchema = z.object({
+  first_name: z.string().min(1, 'First name is required'),
+  last_name: z.string().min(1, 'Last name is required'),
+  email: z.string().email('Invalid email address'),
+  phone: z.string().optional(),
+  emergency_contact: z.string().optional(),
+  date_of_birth: z.date(),
+  hire_date: z.date(),
+  department: z.string().min(1, 'Department is required'),
+  position: z.string().min(1, 'Position is required'),
+  employment_type: z.enum(['full_time', 'part_time', 'contract', 'intern']),
+  base_salary: z.number().min(0, 'Base salary must be greater than 0'),
+  salary_currency: z.enum(['USD', 'EUR', 'AOA']),
+  tax_id: z.string().optional(),
+  social_security_number: z.string().optional(),
+  bank_name: z.string().optional(),
+  bank_account: z.string().optional(),
+  swift_code: z.string().optional(),
+});
+
+type EmployeeFormData = z.infer<typeof employeeSchema>;
 
 export default function NewEmployeePage() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { toast } = useToast();
   const { user } = useAuth();
-  const maxBirthDate = startOfDay(addYears(new Date(), -18));
-  const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    dateOfBirth: new Date(),
-    employeeId: '',
-    hireDate: new Date(),
-    department: '',
-    position: '',
-    employmentType: 'full_time',
-    status: 'active',
-    baseSalary: '',
-    currency: 'USD',
-    bankName: '',
-    bankAccount: '',
-    swiftCode: '',
-    taxId: '',
-    socialSecurityNumber: '',
-    emergencyContact: ''
+  const [loading, setLoading] = useState(false);
+
+  const form = useForm<EmployeeFormData>({
+    resolver: zodResolver(employeeSchema),
+    defaultValues: {
+      first_name: '',
+      last_name: '',
+      email: '',
+      phone: '',
+      emergency_contact: '',
+      date_of_birth: new Date(),
+      hire_date: new Date(),
+      department: '',
+      position: '',
+      employment_type: 'full_time',
+      base_salary: 0,
+      salary_currency: 'USD',
+      tax_id: '',
+      social_security_number: '',
+      bank_name: '',
+      bank_account: '',
+      swift_code: '',
+    },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  async function onSubmit(data: EmployeeFormData) {
+    console.log('Starting employee creation with data:', data);
+    
     try {
-      setIsLoading(true);
+      setLoading(true);
+      
+      if (!user) {
+        console.error('No authenticated user found');
+        throw new Error('You must be logged in to add an employee');
+      }
 
-      const { error } = await supabase
+      // Generate employee ID
+      const employeeId = `EMP${Date.now().toString().slice(-6)}`;
+
+      // Format dates to ISO strings
+      const formattedData = {
+        ...data,
+        date_of_birth: data.date_of_birth.toISOString().split('T')[0],
+        hire_date: data.hire_date.toISOString().split('T')[0],
+        user_id: user.id,
+        employee_id: employeeId,
+        status: 'active',
+        vacation_days: 0,
+        sick_days: 0,
+      };
+
+      console.log('Inserting employee with formatted data:', formattedData);
+
+      const { data: insertedData, error } = await supabase
         .from('employees')
-        .insert([{
-          user_id: user?.id,
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          email: formData.email,
-          phone: formData.phone,
-          date_of_birth: formData.dateOfBirth,
-          employee_id: formData.employeeId,
-          hire_date: formData.hireDate,
-          department: formData.department,
-          position: formData.position,
-          employment_type: formData.employmentType,
-          status: formData.status,
-          base_salary: parseFloat(formData.baseSalary),
-          salary_currency: formData.currency,
-          bank_name: formData.bankName,
-          bank_account: formData.bankAccount,
-          swift_code: formData.swiftCode,
-          tax_id: formData.taxId,
-          social_security_number: formData.socialSecurityNumber,
-          emergency_contact: formData.emergencyContact
-        }]);
+        .insert([formattedData])
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Employee created successfully:', insertedData);
 
       toast({
-        title: t('Success'),
-        description: t('Employee has been successfully created'),
+        title: t('Employee added successfully'),
+        description: `Employee ID: ${employeeId}`,
       });
-
+      
       router.push('/payroll/employees');
     } catch (error) {
-      const errorMessage = handleSupabaseError(error);
+      console.error('Error creating employee:', error);
+      
       toast({
         variant: 'destructive',
-        title: t('Error'),
-        description: t(errorMessage),
+        title: t('Failed to add employee'),
+        description: error instanceof Error ? error.message : 'An unexpected error occurred',
       });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  };
-
-  const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  }
 
   return (
     <div className="container mx-auto p-6">
-      <div className="flex items-center mb-6">
-        <Button
-          variant="ghost"
-          className="mr-4"
-          onClick={() => router.push('/payroll/employees')}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          {t('Back to Employees')}
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold">{t('Add New Employee')}</h1>
-          <p className="text-muted-foreground">
-            {t('Enter the employee details to create a new record')}
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title={t('Add New Employee')}
+        description={t('Create a new employee record')}
+      />
 
-      <form onSubmit={handleSubmit}>
-        <Tabs defaultValue="personal" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="personal">{t('Personal Information')}</TabsTrigger>
-            <TabsTrigger value="employment">{t('Employment Details')}</TabsTrigger>
-            <TabsTrigger value="financial">{t('Financial Information')}</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="personal">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('Personal Information')}</CardTitle>
-                <CardDescription>
-                  {t('Enter the basic personal information of the employee')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+      <Card>
+        <CardContent className="pt-6">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Personal Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">{t('Personal Information')}</h3>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('First Name')}</label>
-                    <Input
-                      required
-                      value={formData.firstName}
-                      onChange={(e) => handleInputChange('firstName', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('Last Name')}</label>
-                    <Input
-                      required
-                      value={formData.lastName}
-                      onChange={(e) => handleInputChange('lastName', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('Email')}</label>
-                    <Input
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('Phone')}</label>
-                    <Input
-                      value={formData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('Date of Birth')}</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={!formData.dateOfBirth ? "text-muted-foreground" : ""}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {formData.dateOfBirth
-                            ? format(formData.dateOfBirth, 'PPP')
-                            : <span>{t('Pick a date')}</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={formData.dateOfBirth}
-                          onSelect={(date) => {
-                            if (date && isAfter(date, maxBirthDate)) {
-                              toast({
-                                variant: 'destructive',
-                                title: t('Invalid Date'),
-                                description: t('Employee must be at least 18 years old'),
-                              });
-                              return;
-                            }
-                            handleInputChange('dateOfBirth', date);
-                          }}
-                          disabled={(date) => isAfter(date, maxBirthDate)}
-                          initialFocus
-                          captionLayout="dropdown-buttons" // Enable dropdown for year and month
-                          fromYear={1900} // Set the earliest selectable year
-                          toYear={new Date().getFullYear() - 18} // Limit to 18 years ago
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="first_name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('First Name')}</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('Emergency Contact')}</label>
-                    <Input
-                      value={formData.emergencyContact}
-                      onChange={(e) => handleInputChange('emergencyContact', e.target.value)}
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="last_name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Last Name')}</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Email')}</FormLabel>
+                        <FormControl>
+                          <Input type="email" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Phone')}</FormLabel>
+                        <FormControl>
+                          <Input type="tel" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="emergency_contact"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Emergency Contact')}</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="date_of_birth"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Date of Birth')}</FormLabel>
+                        <FormControl>
+                          <DatePicker
+                            date={field.value}
+                            onSelect={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </div>
 
-          <TabsContent value="employment">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('Employment Details')}</CardTitle>
-                <CardDescription>{t('Enter work-related information')}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+              {/* Employment Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">{t('Employment Information')}</h3>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('Employee ID')}</label>
-                    <Input
-                      required
-                      value={formData.employeeId}
-                      onChange={(e) => handleInputChange('employeeId', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('Department')}</label>
-                    <Select
-                      value={formData.department}
-                      onValueChange={(value) => handleInputChange('department', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('Select department')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="engineering">Engineering</SelectItem>
-                        <SelectItem value="sales">Sales</SelectItem>
-                        <SelectItem value="marketing">Marketing</SelectItem>
-                        <SelectItem value="hr">HR</SelectItem>
-                        <SelectItem value="finance">Finance</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('Position')}</label>
-                    <Input
-                      required
-                      value={formData.position}
-                      onChange={(e) => handleInputChange('position', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('Employment Type')}</label>
-                    <Select
-                      value={formData.employmentType}
-                      onValueChange={(value) => handleInputChange('employmentType', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('Select type')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="full_time">{t('Full Time')}</SelectItem>
-                        <SelectItem value="part_time">{t('Part Time')}</SelectItem>
-                        <SelectItem value="contract">{t('Contract')}</SelectItem>
-                        <SelectItem value="intern">{t('Intern')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('Status')}</label>
-                    <Select
-                      value={formData.status}
-                      onValueChange={(value) => handleInputChange('status', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('Select status')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active">{t('Active')}</SelectItem>
-                        <SelectItem value="inactive">{t('Inactive')}</SelectItem>
-                        <SelectItem value="on_leave">{t('On Leave')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('Hire Date')}</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={!formData.hireDate ? "text-muted-foreground" : ""}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {formData.hireDate ? format(formData.hireDate, 'PPP') : <span>Pick a date</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={formData.hireDate}
-                          onSelect={(date) => handleInputChange('hireDate', date)}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  <FormField
+                    control={form.control}
+                    name="hire_date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Hire Date')}</FormLabel>
+                        <FormControl>
+                          <DatePicker
+                            date={field.value}
+                            onSelect={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-          <TabsContent value="financial">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('Financial Information')}</CardTitle>
-                <CardDescription>{t('Enter salary and banking details')}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="department"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Department')}</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('Select department')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="engineering">{t('Engineering')}</SelectItem>
+                            <SelectItem value="sales">{t('Sales')}</SelectItem>
+                            <SelectItem value="marketing">{t('Marketing')}</SelectItem>
+                            <SelectItem value="hr">{t('HR')}</SelectItem>
+                            <SelectItem value="finance">{t('Finance')}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="position"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Position')}</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="employment_type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Employment Type')}</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="full_time">{t('Full Time')}</SelectItem>
+                            <SelectItem value="part_time">{t('Part Time')}</SelectItem>
+                            <SelectItem value="contract">{t('Contract')}</SelectItem>
+                            <SelectItem value="intern">{t('Intern')}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="base_salary"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Base Salary')}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            inputMode="decimal"
+                            min="0"
+                            step="0.01"
+                            className="no-spinner"
+                            value={field.value}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              field.onChange(value === '' ? 0 : parseFloat(value));
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="salary_currency"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Salary Currency')}</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="USD">USD</SelectItem>
+                            <SelectItem value="EUR">EUR</SelectItem>
+                            <SelectItem value="AOA">AOA</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Additional Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">{t('Additional Information')}</h3>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('Base Salary')}</label>
-                    <Input
-                      type="number"
-                      required
-                      value={formData.baseSalary}
-                      onChange={(e) => handleInputChange('baseSalary', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('Currency')}</label>
-                    <Select
-                      value={formData.currency}
-                      onValueChange={(value) => handleInputChange('currency', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('Select currency')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="USD">USD</SelectItem>
-                        <SelectItem value="EUR">EUR</SelectItem>
-                        <SelectItem value="AOA">AOA</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('Bank Name')}</label>
-                    <Input
-                      value={formData.bankName}
-                      onChange={(e) => handleInputChange('bankName', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('Bank Account')}</label>
-                    <Input
-                      value={formData.bankAccount}
-                      onChange={(e) => handleInputChange('bankAccount', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('Swift Code')}</label>
-                    <Input
-                      value={formData.swiftCode}
-                      onChange={(e) => handleInputChange('swiftCode', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('Tax ID')}</label>
-                    <Input
-                      value={formData.taxId}
-                      onChange={(e) => handleInputChange('taxId', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('Social Security Number')}</label>
-                    <Input
-                      value={formData.socialSecurityNumber}
-                      onChange={(e) => handleInputChange('socialSecurityNumber', e.target.value)}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>  {/* Add this closing tag */}
+                  <FormField
+                    control={form.control}
+                    name="tax_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Tax ID')}</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-        <div className="mt-6 flex justify-end space-x-4">
-          <Button
-            variant="outline"
-            onClick={() => router.push('/payroll/employees')}
-            disabled={isLoading}
-          >
-            {t('Cancel')}
-          </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? t('Creating...') : t('Create Employee')}
-          </Button>
-        </div>
-      </form>
+                  <FormField
+                    control={form.control}
+                    name="social_security_number"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Social Security Number')}</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Banking Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">{t('Banking Information')}</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="bank_name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Bank Name')}</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="bank_account"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('Bank Account')}</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="swift_code"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('SWIFT Code')}</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.back()}
+                  disabled={loading}
+                >
+                  {t('Cancel')}
+                </Button>
+                <Button type="submit" disabled={loading}>
+                  {loading ? t('Adding Employee...') : t('Add Employee')}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

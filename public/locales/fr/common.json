@@ -4,7 +4,17 @@
   "Dashboard.TotalClients": "Total Clients",
   "Dashboard.TotalInvoices": "Total Factures",
   "Dashboard.MonthlyRevenue": "Revenu Mensuel",
+  "Dashboard.ActiveEmployees": "Employés Actifs",
+  "Dashboard.RevenueTrends": "Tendances des Revenus",
+  "Dashboard.EmployeeStats": "Statistiques des Employés",
   "Dashboard.ExchangeRates": "Taux de Change",
+  "Dashboard.VsLastMonth": "vs mois précédent",
+  "Dashboard.EmployeeStatus": {
+    "Active": "Actifs",
+    "OnLeave": "En Congé",
+    "Total": "Total",
+    "Terminated": "Terminés"
+  },
 
   "Clients": "Clients",
   "Clients.Description": "Gérez les informations de vos clients",

@@ -5,6 +5,16 @@
   "Dashboard.TotalInvoices": "Total de Faturas",
   "Dashboard.MonthlyRevenue": "Receita Mensal",
   "Dashboard.ExchangeRates": "Taxas de Câmbio",
+  "Dashboard.ActiveEmployees": "Funcionários Ativos",
+  "Dashboard.RevenueTrends": "Tendências de Receita",
+  "Dashboard.EmployeeStats": "Estatísticas de Funcionários",
+  "Dashboard.VsLastMonth": "vs mês anterior",
+  "Dashboard.EmployeeStatus": {
+    "Active": "Ativos",
+    "OnLeave": "De Férias",
+    "Total": "Total",
+    "Terminated": "Desligados"
+  },
 
   "Clients": "Clientes",
   "Clients.Description": "Gerencie as informações dos seus clientes",

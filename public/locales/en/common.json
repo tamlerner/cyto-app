@@ -5,6 +5,16 @@
   "Dashboard.TotalInvoices": "Total Invoices",
   "Dashboard.MonthlyRevenue": "Monthly Revenue",
   "Dashboard.ExchangeRates": "Exchange Rates",
+  "Dashboard.ActiveEmployees": "Active Employees",
+  "Dashboard.RevenueTrends": "Revenue Trends",
+  "Dashboard.EmployeeStats": "Employee Statistics",
+  "Dashboard.VsLastMonth": "vs last month",
+  "Dashboard.EmployeeStatus": {
+    "Active": "Active",
+    "OnLeave": "On Leave",
+    "Total": "Total",
+    "Terminated": "Terminated"
+  },
 
 
   "Clients": "Clients",
