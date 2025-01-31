@@ -5,6 +5,7 @@ interface AuthBackgroundProps {
   repeat?: boolean;
   cover?: boolean;
 }
+
 export function AuthBackground({ expanded, repeat, cover }: AuthBackgroundProps) {
   return (
     <div className={`absolute inset-0 ${expanded ? 'h-full' : 'h-screen'} ${repeat ? 'bg-repeat' : ''} ${cover ? 'bg-cover' : ''} scale-100 pointer-events-none z-50`}>

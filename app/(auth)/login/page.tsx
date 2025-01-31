@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,12 +18,10 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { AuthContainer } from '@/components/auth/auth-container';
-import { AuthHeader } from '@/components/auth/auth-header';
 import { GoogleAuthButton } from '@/components/auth/google-auth-button';
 import NewsletterCarousel from '@/components/newsletter-carousel';
-import { Separator } from '@/components/ui/separator';
 import { AuthBackground } from '@/components/auth/auth-background';
+import { useRouter } from 'next/navigation';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -36,8 +34,11 @@ export default function LoginPage() {
   const { t } = useTranslation();
   const { signIn } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
+  // Initialize form
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -46,10 +47,23 @@ export default function LoginPage() {
     },
   });
 
+  // Set client-side rendering flag
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Don't render anything during SSR
+  if (!isClient) {
+    return null;
+  }
+
   async function onSubmit(data: LoginFormData) {
+    if (loading) return;
+
     try {
       setLoading(true);
       await signIn(data.email, data.password);
+      // Successful login will be handled by useAuth hook's redirect
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -67,11 +81,16 @@ export default function LoginPage() {
       <div className="w-1/2 bg-background p-8 flex flex-col justify-between relative overflow-hidden">
         <AuthBackground expanded repeat />
         
-        <div className="space-y-8 w-full max-w-md mx-auto">
-          <AuthHeader 
-            title="Auth.WelcomeBack"
-            description="Auth.EnterCredentials"
-          />
+        <div className="space-y-8 w-full max-w-md mx-auto relative z-10">
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-bold">CYTO</h1>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              {t('Auth.WelcomeBack')} <span className="animate-wave">👋</span>
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              {t('Auth.EnterCredentials')}
+            </p>
+          </div>
 
           <div className="space-y-6">
             <GoogleAuthButton />
@@ -100,6 +119,7 @@ export default function LoginPage() {
                           type="email"
                           placeholder="name@example.com"
                           autoComplete="email"
+                          disabled={loading}
                           {...field}
                         />
                       </FormControl>
@@ -119,6 +139,7 @@ export default function LoginPage() {
                           type="password"
                           placeholder="••••••••"
                           autoComplete="current-password"
+                          disabled={loading}
                           {...field}
                         />
                       </FormControl>
@@ -127,7 +148,11 @@ export default function LoginPage() {
                   )}
                 />
 
-                <Button className="w-full" type="submit" disabled={loading}>
+                <Button 
+                  className="w-full" 
+                  type="submit" 
+                  disabled={loading}
+                >
                   {loading ? t('Auth.SigningIn') : t('Auth.SignIn')}
                 </Button>
               </form>
@@ -135,14 +160,18 @@ export default function LoginPage() {
 
             <div className="text-center text-sm">
               {t('Auth.NoAccount')}{' '}
-              <Link href="/register" className="text-primary hover:underline">
+              <Link 
+                href="/register" 
+                className="text-primary hover:underline"
+                tabIndex={loading ? -1 : 0}
+              >
                 {t('Auth.CreateAccount')}
               </Link>
             </div>
           </div>
         </div>
 
-        <div className="pt-8">
+        <div className="pt-8 relative z-10">
           <NewsletterCarousel />
         </div>
       </div>
@@ -152,7 +181,9 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10" />
         
         <div className="relative z-10 max-w-2xl mx-auto space-y-8">
-          <h1 className="text-4xl font-light tracking-wider mb-4 text-white">Top Startup to watch in Angola in 2024 - Techround UK</h1>
+          <h1 className="text-4xl font-light tracking-wider mb-4">
+            Top Startup to watch in Angola in 2024 - Techround UK
+          </h1>
           
           <div className="space-y-6">
             <h2 className="text-3xl font-bold">
