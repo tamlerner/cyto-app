@@ -8,9 +8,11 @@ interface AuthBackgroundProps {
 
 export function AuthBackground({ expanded, repeat, cover }: AuthBackgroundProps) {
   return (
-    <div className={`absolute inset-0 ${expanded ? 'h-full' : 'h-screen'} ${repeat ? 'bg-repeat' : ''} ${cover ? 'bg-cover' : ''} scale-100 pointer-events-none z-50`}>
+    <div className={`absolute inset-0 ${expanded ? 'h-full' : 'h-screen'} ${repeat ? 'bg-repeat' : ''} ${cover ? 'bg-cover' : ''} scale-100 pointer-events-none z-0 overflow-hidden`}>
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
+      
       <svg
-        className="absolute w-[220%] h-[180%] -top-5/5-left-5/5 animate-slow-spin opacity-[1] dark:opacity-[0.05]"
+        className="absolute w-[220%] h-[180%] -top-5/5-left-5/5 animate-slow-spin opacity-[0.03] dark:opacity-[0.02]"
         viewBox="0 0 2834.65 2834.65"
       >
         <g>
@@ -55,6 +57,22 @@ export function AuthBackground({ expanded, repeat, cover }: AuthBackgroundProps)
           />
         </g>
       </svg>
+
+      {/* Floating particles effect */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-2 h-2 bg-primary/10 rounded-full"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              animation: `float ${5 + Math.random() * 10}s linear infinite`,
+              animationDelay: `-${Math.random() * 5}s`
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 }

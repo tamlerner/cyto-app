@@ -9,6 +9,7 @@
   "Dashboard.RevenueTrends": "Tendencias de Ingresos",
   "Dashboard.EmployeeStats": "Estadísticas de Empleados",
   "Dashboard.VsLastMonth": "vs mes anterior",
+  "Dashboard.NewPayment": "Crear Pago 💸",
   "Dashboard.EmployeeStatus": {
     "Active": "Activos",
     "OnLeave": "De Permiso",

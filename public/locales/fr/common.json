@@ -9,6 +9,7 @@
   "Dashboard.EmployeeStats": "Statistiques des Employés",
   "Dashboard.ExchangeRates": "Taux de Change",
   "Dashboard.VsLastMonth": "vs mois précédent",
+  "Dashboard.NewPayment": "Nouveau Paiement 💸",
   "Dashboard.EmployeeStatus": {
     "Active": "Actifs",
     "OnLeave": "En Congé",

@@ -104,12 +104,26 @@
   }
 }
 
+@keyframes float {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(100px);
+    opacity: 0;
+  }
+}
+
 .no-spinner {
-  -moz-appearance: textfield; /* For Firefox */
+  -moz-appearance: textfield;
 }
 
 .no-spinner::-webkit-inner-spin-button,
 .no-spinner::-webkit-outer-spin-button {
-  -webkit-appearance: none; /* For Chrome, Safari, and newer versions of Edge */
-  margin: 0; /* Remove margin */
+  -webkit-appearance: none;
+  margin: 0;
 }

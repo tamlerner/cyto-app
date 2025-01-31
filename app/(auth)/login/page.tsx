@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,6 +23,7 @@ import { GoogleAuthButton } from '@/components/auth/google-auth-button';
 import NewsletterCarousel from '@/components/newsletter-carousel';
 import { AuthBackground } from '@/components/auth/auth-background';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -29,6 +31,20 @@ const loginSchema = z.object({
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
+
+const fadeIn = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.6 }
+};
+
+const stagger = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -38,7 +54,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
-  // Initialize form
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -47,12 +62,10 @@ export default function LoginPage() {
     },
   });
 
-  // Set client-side rendering flag
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // Don't render anything during SSR
   if (!isClient) {
     return null;
   }
@@ -63,7 +76,6 @@ export default function LoginPage() {
     try {
       setLoading(true);
       await signIn(data.email, data.password);
-      // Successful login will be handled by useAuth hook's redirect
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -81,18 +93,38 @@ export default function LoginPage() {
       <div className="w-1/2 bg-background p-8 flex flex-col justify-between relative overflow-hidden">
         <AuthBackground expanded repeat />
         
-        <div className="space-y-8 w-full max-w-md mx-auto relative z-10">
-          <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold">CYTO</h1>
-            <h2 className="text-2xl font-semibold tracking-tight">
-              {t('Auth.WelcomeBack')} <span className="animate-wave">👋</span>
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              {t('Auth.EnterCredentials')}
-            </p>
-          </div>
+        <motion.div 
+          className="space-y-8 w-full max-w-md mx-auto relative z-10"
+          initial="initial"
+          animate="animate"
+          variants={stagger}
+        >
+          <motion.div 
+            className="flex flex-col items-center space-y-4"
+            variants={fadeIn}
+          >
+            <Image
+              src="/cyto-logo.png"
+              alt="CYTO"
+              width={120}
+              height={40}
+              className="dark:invert"
+              priority
+            />
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-semibold tracking-tight">
+                {t('Auth.WelcomeBack')} <span className="inline-block animate-bounce">👋</span>
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {t('Auth.EnterCredentials')}
+              </p>
+            </div>
+          </motion.div>
 
-          <div className="space-y-6">
+          <motion.div 
+            className="space-y-6"
+            variants={fadeIn}
+          >
             <GoogleAuthButton />
             
             <div className="relative">
@@ -120,6 +152,7 @@ export default function LoginPage() {
                           placeholder="name@example.com"
                           autoComplete="email"
                           disabled={loading}
+                          className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
                           {...field}
                         />
                       </FormControl>
@@ -140,6 +173,7 @@ export default function LoginPage() {
                           placeholder="••••••••"
                           autoComplete="current-password"
                           disabled={loading}
+                          className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
                           {...field}
                         />
                       </FormControl>
@@ -149,7 +183,7 @@ export default function LoginPage() {
                 />
 
                 <Button 
-                  className="w-full" 
+                  className="w-full transition-all duration-200 hover:shadow-lg" 
                   type="submit" 
                   disabled={loading}
                 >
@@ -162,31 +196,41 @@ export default function LoginPage() {
               {t('Auth.NoAccount')}{' '}
               <Link 
                 href="/register" 
-                className="text-primary hover:underline"
+                className="text-primary hover:underline transition-colors"
                 tabIndex={loading ? -1 : 0}
               >
                 {t('Auth.CreateAccount')}
               </Link>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        <div className="pt-8 relative z-10">
+        <motion.div 
+          className="pt-8 relative z-10"
+          variants={fadeIn}
+          initial="initial"
+          animate="animate"
+        >
           <NewsletterCarousel />
-        </div>
+        </motion.div>
       </div>
 
       {/* Right side - Marketing Content */}
       <div className="w-1/2 bg-primary text-primary-foreground p-8 flex flex-col justify-center relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10" />
         
-        <div className="relative z-10 max-w-2xl mx-auto space-y-8">
+        <motion.div 
+          className="relative z-10 max-w-2xl mx-auto space-y-8"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
           <h1 className="text-4xl font-light tracking-wider mb-4">
             Top Startup to watch in Angola in 2024 - Techround UK
           </h1>
           
           <div className="space-y-6">
-            <h2 className="text-3xl font-bold">
+            <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
               Thrive Locally, Scale Globally.
             </h2>
             <p className="text-xl text-primary-foreground/80">
@@ -195,20 +239,32 @@ export default function LoginPage() {
           </div>
 
           <div className="grid grid-cols-3 gap-8 mt-12">
-            <div className="space-y-2">
+            <motion.div 
+              className="space-y-2"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
               <h3 className="text-2xl font-bold">1000+</h3>
               <p className="text-primary-foreground/80">Active Users</p>
-            </div>
-            <div className="space-y-2">
+            </motion.div>
+            <motion.div 
+              className="space-y-2"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
               <h3 className="text-2xl font-bold">$10M+</h3>
               <p className="text-primary-foreground/80">Processed Monthly</p>
-            </div>
-            <div className="space-y-2">
+            </motion.div>
+            <motion.div 
+              className="space-y-2"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
               <h3 className="text-2xl font-bold">15+</h3>
               <p className="text-primary-foreground/80">Countries Served</p>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
