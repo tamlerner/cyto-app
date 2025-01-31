@@ -11,7 +11,7 @@ interface ExchangeTickerProps {
   change: number;
   previousRate?: number;
   selected?: boolean;
-  shine?: boolean;
+  onClick?: () => void;
 }
 
 export function ExchangeTicker({ 
@@ -21,19 +21,21 @@ export function ExchangeTicker({
   change,
   previousRate,
   selected,
-  shine 
+  onClick
 }: ExchangeTickerProps) {
   const isPositive = change >= 0;
   const hasChanged = previousRate !== undefined && rate !== previousRate;
   const changeDirection = previousRate !== undefined ? (rate > previousRate ? 'up' : 'down') : null;
 
   return (
-    <Card className={cn(
-      "overflow-hidden transition-all duration-300",
-      selected ? "ring-2 ring-primary" : "hover:shadow-lg",
-      hasChanged && "animate-pulse",
-      shine && "before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:animate-shine"
-    )}>
+    <Card 
+      className={cn(
+        "overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer",
+        selected && "ring-2 ring-primary",
+        hasChanged && "animate-pulse"
+      )}
+      onClick={onClick}
+    >
       <CardContent className="p-4">
         <div className="flex justify-between items-start">
           <div className="space-y-1">
