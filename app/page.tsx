@@ -9,7 +9,7 @@ import Head from 'next/head';
 export default function Home() {
   const router = useRouter();
   const { user, loading } = useAuth();
-  const siteTitle = process.env.NEXT_PUBLIC_SITE_TITLE || 'Default Title';
+  const siteTitle = 'CYTO Business Suite';
   
   useEffect(() => {
     if (!loading) {
