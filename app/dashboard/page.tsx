@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
-import { BarChart3, Users, FileText, TrendingUp, ArrowUpRight, ArrowDownRight, Building2 } from 'lucide-react';
+import { BarChart3, Users, FileText, TrendingUp, ArrowUpRight, ArrowDownRight, Building2, Plus } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PageHeader } from '@/components/page-header';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,17 +10,20 @@ import { MetricCard } from './components/metric-card';
 import { ExchangeRatesGrid } from './components/exchange-rates/exchange-rates-grid';
 import { formatCurrency } from '@/lib/utils/currency';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import {
   BarChart,
   Bar,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
-  Legend,
   ResponsiveContainer,
-  LineChart,
-  Line,
+  Legend,
 } from 'recharts';
 
 export default function DashboardPage() {
@@ -46,6 +49,22 @@ export default function DashboardPage() {
       <PageHeader
         title={t('Dashboard')}
         description={t('Dashboard.Description')}
+        action={
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button className="relative group">
+                <Plus className="mr-2 h-4 w-4" />
+                {t('Dashboard.NewPayment')}
+                <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  {t('ComingSoon')}
+                </span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{t('ComingSoon')}</p>
+            </TooltipContent>
+          </Tooltip>
+        }
       />
       
       <div className="grid gap-4 md:grid-cols-4">
@@ -66,7 +85,7 @@ export default function DashboardPage() {
               trend={{
                 value: metrics.trends.clients.value,
                 positive: metrics.trends.clients.positive,
-                label: 'vs last month'
+                label: t('Dashboard.VsLastMonth')
               }}
             />
             <MetricCard
@@ -77,7 +96,7 @@ export default function DashboardPage() {
               trend={{
                 value: metrics.trends.invoices.value,
                 positive: metrics.trends.invoices.positive,
-                label: 'vs last month'
+                label: t('Dashboard.VsLastMonth')
               }}
             />
             <MetricCard
@@ -87,7 +106,7 @@ export default function DashboardPage() {
               trend={{
                 value: metrics.trends.revenue.value,
                 positive: metrics.trends.revenue.positive,
-                label: 'vs last month'
+                label: t('Dashboard.VsLastMonth')
               }}
             />
             <MetricCard
@@ -98,7 +117,7 @@ export default function DashboardPage() {
               trend={{
                 value: metrics.trends.employees.value,
                 positive: metrics.trends.employees.positive,
-                label: 'vs last month'
+                label: t('Dashboard.VsLastMonth')
               }}
             />
           </>
@@ -133,21 +152,29 @@ export default function DashboardPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Active</span>
+                  <span className="text-sm text-muted-foreground">
+                    {t('Dashboard.EmployeeStatus.Active')}
+                  </span>
                   <span className="font-medium">{metrics.employeeStats.active}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">On Leave</span>
+                  <span className="text-sm text-muted-foreground">
+                    {t('Dashboard.EmployeeStatus.OnLeave')}
+                  </span>
                   <span className="font-medium">{metrics.employeeStats.onLeave}</span>
                 </div>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Total</span>
+                  <span className="text-sm text-muted-foreground">
+                    {t('Dashboard.EmployeeStatus.Total')}
+                  </span>
                   <span className="font-medium">{metrics.employeeStats.total}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Terminated</span>
+                  <span className="text-sm text-muted-foreground">
+                    {t('Dashboard.EmployeeStatus.Terminated')}
+                  </span>
                   <span className="font-medium">{metrics.employeeStats.terminated}</span>
                 </div>
               </div>

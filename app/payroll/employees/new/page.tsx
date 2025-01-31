@@ -83,15 +83,17 @@ export default function NewEmployeePage() {
   });
 
   async function onSubmit(data: EmployeeFormData) {
-    console.log('Starting employee creation with data:', data);
-    
+    if (!user) {
+      toast({
+        variant: 'destructive',
+        title: 'Authentication Error',
+        description: 'You must be logged in to add an employee',
+      });
+      return;
+    }
+
     try {
       setLoading(true);
-      
-      if (!user) {
-        console.error('No authenticated user found');
-        throw new Error('You must be logged in to add an employee');
-      }
 
       // Generate employee ID
       const employeeId = `EMP${Date.now().toString().slice(-6)}`;
@@ -99,32 +101,36 @@ export default function NewEmployeePage() {
       // Format dates to ISO strings
       const formattedData = {
         ...data,
-        date_of_birth: data.date_of_birth.toISOString().split('T')[0],
-        hire_date: data.hire_date.toISOString().split('T')[0],
         user_id: user.id,
         employee_id: employeeId,
+        date_of_birth: data.date_of_birth.toISOString(),
+        hire_date: data.hire_date.toISOString(),
         status: 'active',
         vacation_days: 0,
         sick_days: 0,
       };
 
-      console.log('Inserting employee with formatted data:', formattedData);
+      console.log('Attempting to create employee with data:', formattedData);
 
-      const { data: insertedData, error } = await supabase
+      const { data: insertedData, error: insertError } = await supabase
         .from('employees')
         .insert([formattedData])
         .select()
         .single();
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
+      if (insertError) {
+        console.error('Supabase insert error:', insertError);
+        throw new Error(insertError.message);
+      }
+
+      if (!insertedData) {
+        throw new Error('No data returned from insert operation');
       }
 
       console.log('Employee created successfully:', insertedData);
 
       toast({
-        title: t('Employee added successfully'),
+        title: 'Employee Added',
         description: `Employee ID: ${employeeId}`,
       });
       
@@ -134,8 +140,10 @@ export default function NewEmployeePage() {
       
       toast({
         variant: 'destructive',
-        title: t('Failed to add employee'),
-        description: error instanceof Error ? error.message : 'An unexpected error occurred',
+        title: 'Failed to add employee',
+        description: error instanceof Error 
+          ? error.message 
+          : 'An unexpected error occurred while creating the employee',
       });
     } finally {
       setLoading(false);

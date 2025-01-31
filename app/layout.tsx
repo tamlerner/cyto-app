@@ -11,6 +11,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Sidebar } from '@/components/sidebar';
 import { AppHeader } from '@/components/header/app-header';
 import { AuthModal } from '@/components/auth/auth-modal';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import '@/lib/i18n/init';
 
 const PUBLIC_ROUTES = ['/login', '/register'];
@@ -28,24 +29,26 @@ export default function RootLayout({
       <body>
         <Providers>
           <AuthProvider>
-            <AuthGuard>
-              <Suspense fallback={<LoadingSpinner />}>
-                {isPublicRoute ? (
-                  children
-                ) : (
-                  <div className="min-h-screen bg-background">
-                    <AppHeader />
-                    <div className="flex h-screen pt-16">
-                      <Sidebar />
-                      <main className="flex-1 overflow-y-auto">
-                        {children}
-                      </main>
+            <TooltipProvider>
+              <AuthGuard>
+                <Suspense fallback={<LoadingSpinner />}>
+                  {isPublicRoute ? (
+                    children
+                  ) : (
+                    <div className="min-h-screen bg-background">
+                      <AppHeader />
+                      <div className="flex h-screen pt-16">
+                        <Sidebar />
+                        <main className="flex-1 overflow-y-auto">
+                          {children}
+                        </main>
+                      </div>
+                      <AuthModal />
                     </div>
-                    <AuthModal />
-                  </div>
-                )}
-              </Suspense>
-            </AuthGuard>
+                  )}
+                </Suspense>
+              </AuthGuard>
+            </TooltipProvider>
           </AuthProvider>
         </Providers>
         <Toaster />
