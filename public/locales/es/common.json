@@ -10,17 +10,43 @@
   "Dashboard.EmployeeStats": "Estadísticas de Empleados",
   "Dashboard.VsLastMonth": "vs mes anterior",
   "Dashboard.NewPayment": "Crear Pago 💸",
+  "ExchangeRates": "Tipos de Cambio",
+  "ExchangeRate": "Tipo de Cambio",
+  "TimeRange": {
+    "daily": "24H",
+    "weekly": "7D",
+    "monthly": "1M",
+    "yearly": "1A"
+  },
+  "WeekDays": {
+    "Mon": "Lun",
+    "Tue": "Mar",
+    "Wed": "Mié",
+    "Thu": "Jue",
+    "Fri": "Vie",
+    "Sat": "Sáb",
+    "Sun": "Dom"
+  },
+  "RateChange": {
+    "up": "Aumentó",
+    "down": "Disminuyó"
+  },
+  "Rate": "Tasa",
+  "Change": "Variación",
+  "LastUpdate": "Última actualización",
+  "LiveUpdates": "Actualizaciones en vivo",
+  "ExpandChart": "Clic para expandir gráfico",
+  "CloseChart": "Cerrar gráfico",
   "Dashboard.EmployeeStatus": {
     "Active": "Activos",
     "OnLeave": "De Permiso",
     "Total": "Total",
     "Terminated": "Terminados"
   },
-
   "Clients": "Clientes",
   "Clients.Description": "Gestiona la información de tus clientes",
   "Clients.Add": "Añadir Cliente",
-  "Clients.CreateNew" : "Añadir Client" ,
+  "Clients.CreateNew": "Añadir Client",
   "Clients.CompanyName": "Nombre de la Empresa",
   "Clients.TradeName": "Nombre Comercial",
   "Clients.TaxId": "NIF/CIF",
@@ -39,7 +65,6 @@
   "Clients.PreferredCurrency": "Moneda Preferida",
   "Clients.BulkImport": "Importación de Archivo",
   "Clients.ImportCSV": "Importación CSV",
-
   "ImportCSV": "Importación CSV",
   "Importing": "Importando...",
   "ImportSuccess": "Importación Acertada",
@@ -49,11 +74,10 @@
   "CSVFormat": "Formato CSV",
   "CSVFormatDescription": "Su archivo CSV debe incluir las siguientes columnas. Los campos obligatorios están marcados con *:",
   "AddManually": "Añadir Manualmente",
-
   "Products": "Productos y Servicios",
   "Products.Description": "Gestiona tu catálogo de productos y servicios",
   "Products.Add": "Añadir Producto/Servicio",
-  "Products.CreateNew" : "Añadir Producto/Servicio",
+  "Products.CreateNew": "Añadir Producto/Servicio",
   "Products.NoProducts": "No se encontraron productos o servicios",
   "Products.ItemDescription": "Descripción",
   "Products.UnitPrice": "Precio",
@@ -73,7 +97,6 @@
   "Products.DeleteConfirm": "¿Estás seguro de que quieres eliminar este producto/servicio?",
   "Products.BulkImport": "Importación de Archivo",
   "Products.ImportCSV": "Importación CSV",
-
   "Invoices": "Facturas",
   "Invoices.Description": "Gestiona tus facturas",
   "Invoices.Create": "Crear Factura",
@@ -108,7 +131,6 @@
   "Invoices.Subtotal": "Subtotal",
   "Invoices.TaxTotal": "Total de Impuestos",
   "Invoices.AddItem": "Añadir Ítem",
-
   "Auth": {
     "Welcome": "Bienvenido a CYTO",
     "WelcomeBack": "Bienvenido de nuevo",
@@ -129,7 +151,6 @@
     "OrContinueWith": "O continuar con",
     "SignOutConfirm": "¿Estás seguro de que quieres cerrar sesión?"
   },
-
   "Form": {
     "Required": "Obligatorio",
     "InvalidEmail": "Correo electrónico inválido",
@@ -142,11 +163,9 @@
     "Editing": "Editando...",
     "Create": "Guardar"
   },
-
   "Upgrade": {
     "ToPro": "Actualizar a Pro"
   },
-
   "Settings": {
     "Title": "Configuración",
     "Description": "Gestiona la configuración y preferencias de tu cuenta",

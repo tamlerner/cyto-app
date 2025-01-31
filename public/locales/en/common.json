@@ -10,6 +10,34 @@
   "Dashboard.EmployeeStats": "Employee Statistics",
   "Dashboard.VsLastMonth": "vs last month",
   "Dashboard.NewPayment": "Create New Payment 💸",
+  "ExchangeRates": "Exchange Rates",
+  "ExchangeRate": "Exchange Rate",
+  "TimeRange": {
+    "daily": "24H",
+    "weekly": "7D",
+    "monthly": "1M",
+    "yearly": "1Y"
+  },
+  "WeekDays": {
+    "Mon": "Mon",
+    "Tue": "Tue",
+    "Wed": "Wed",
+    "Thu": "Thu",
+    "Fri": "Fri",
+    "Sat": "Sat",
+    "Sun": "Sun"
+  },
+  "RateChange": {
+    "up": "Increased by",
+    "down": "Decreased by"
+  },
+  "Rate": "Rate",
+  "Change": "Change",
+  "LastUpdate": "Last update",
+  "LiveUpdates": "Live updates",
+  "ExpandChart": "Click to expand chart",
+  "CloseChart": "Close chart",
+  
   "Dashboard.EmployeeStatus": {
     "Active": "Active",
     "OnLeave": "On Leave",
