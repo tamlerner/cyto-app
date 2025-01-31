@@ -25,6 +25,13 @@ const NewsletterCarousel = () => {
   const newsItems = [
     {
       title: "Corporate Updates",
+      description: "CYTO at the Angola–France Business Forum in Paris",
+      link: "https://www.appcyto.com/en/news/cyto-at-the-angola-france-business-forum-in-paris",
+      imageUrl: "/placeholder5.png"
+    },
+
+    {
+      title: "Corporate Updates",
       description: "Reasons we look forward to 2025",
       link: "https://www.appcyto.com/en/news/2025-roadmap",
       imageUrl: "/placeholder1.png"

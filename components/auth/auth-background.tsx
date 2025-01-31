@@ -57,4 +57,3 @@ export function AuthBackground({ expanded, repeat, cover }: AuthBackgroundProps)
     </div>
   );
 }
-<h1 className="text-4xl font-light tracking-wider mb-4 text-white">Top Startup to watch in Angola in 2024 - Techround UK</h1>
