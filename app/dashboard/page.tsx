@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PageHeader } from '@/components/page-header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDashboardMetrics } from './hooks/use-dashboard-metrics';
+import { useDashboardInvoiceMetrics_usd } from './hooks/use-dashboard-invoice-metrics-usd';
 import { MetricCard } from './components/metric-card';
 import { ExchangeRatesGrid } from './components/exchange-rates/exchange-rates-grid';
 import { formatCurrency } from '@/lib/utils/currency';
@@ -32,6 +33,7 @@ import {
 export default function DashboardPage() {
   const { t } = useTranslation();
   const { metrics, loading, error } = useDashboardMetrics();
+  const { metrics_invoices_usd } = useDashboardInvoiceMetrics_usd();
   const formatNumber = (num: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(num);
   const formatLabel = (value: number) => (value === 0 ? "" : formatNumber(value));
   const CustomTooltip_FormatNumbers: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
@@ -62,7 +64,6 @@ export default function DashboardPage() {
     );
   }
 
-  console.log('Invoice Data for Chart:', metrics.invoiceData);
 
   return (
     <div className="space-y-6">
@@ -152,23 +153,28 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
             <ResponsiveContainer width="100%" height={400}>
-              <BarChart 
-                data={metrics.invoiceData}
-                margin={{ top: 20, right: 30, bottom: 20, left: 40 }}
-              >
+            <BarChart 
+              data={metrics_invoices_usd.LastSixMo_Revenues}
+              margin={{ top: 20, right: 30, bottom: 20, left: 40 }}
+            >
               <CartesianGrid stroke="#d3d3d3" vertical={false} strokeWidth={0.5}/>
-                <XAxis dataKey="month" />
-                <YAxis tickFormatter={formatNumber} />
-                <Tooltip content={<CustomTooltip_FormatNumbers />} />
-                <Legend />
+              
+              {/* Update XAxis to use Date_str */}
+              <XAxis dataKey="Date_str" />
+              
+              <YAxis tickFormatter={formatNumber} />
+              <Tooltip content={<CustomTooltip_FormatNumbers />} />
+              <Legend />
+              
+              {/* Update Bar dataKey to Revenue */}
+              <Bar dataKey="Paid_Invoices" fill="#4CBB17" radius={[5, 5, 0, 0]} name="Paid Amount" isAnimationActive={true}>
+                <LabelList dataKey="Paid_Invoices" position="top" fill="#4CBB17" formatter={formatLabel} />
+              </Bar>
+              <Bar dataKey="Sent_Overview_Invoices" fill="#576edb" radius={[5, 5, 0, 0]} name="Sent & Overdue Amount" isAnimationActive={true}>
+                <LabelList dataKey="Sent_Overview_Invoices" position="top" fill="#576edb" formatter={formatLabel} />
+              </Bar>
+            </BarChart>
 
-                <Bar dataKey="total" fill="#576ddb" radius={[5, 5, 0, 0]} name="Total Invoiced Amount" isAnimationActive={true}>
-                  <LabelList dataKey="total" position="top" fill="#576ddb" formatter={formatLabel} />
-                </Bar>
-                <Bar dataKey="paid" fill="#4CBB17" radius={[5, 5, 0, 0]} name="Paid Amount" isAnimationActive={true}>
-                  <LabelList dataKey="paid" position="top" fill="#4CBB17" formatter={formatLabel} />
-                </Bar>
-              </BarChart>
             </ResponsiveContainer>
 
             </CardContent>
