@@ -2,6 +2,7 @@
 
 import { useTranslation } from 'react-i18next';
 import { BarChart3, Users, FileText, TrendingUp, ArrowUpRight, ArrowDownRight, Building2, Plus } from 'lucide-react';
+
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PageHeader } from '@/components/page-header';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,7 +22,9 @@ import {
   Bar,
   XAxis,
   YAxis,
+  TooltipProps,
   CartesianGrid,
+  LabelList,
   ResponsiveContainer,
   Legend,
 } from 'recharts';
@@ -29,6 +32,21 @@ import {
 export default function DashboardPage() {
   const { t } = useTranslation();
   const { metrics, loading, error } = useDashboardMetrics();
+  const formatNumber = (num: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(num);
+  const formatLabel = (value: number) => (value === 0 ? "" : formatNumber(value));
+  const CustomTooltip_FormatNumbers: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="custom-tooltip" style={{ background: "#fff", padding: "10px", border: "1px solid #ccc", borderRadius: "5px" }}>
+          <p>{`Month: ${payload[0].payload.month}`}</p>
+          <p style={{ color: "#576ddb" }}>{`Total Invoiced Amount: ${formatNumber(payload[0].value as number)}`}</p>
+          <p style={{ color: "#4CBB17" }}>{`Paid Amount: ${formatNumber(payload[1].value as number)}`}</p>
+        </div>
+      );
+    }
+    return null;
+  };
+  
 
   if (error) {
     return (
@@ -43,6 +61,8 @@ export default function DashboardPage() {
       </div>
     );
   }
+
+  console.log('Invoice Data for Chart:', metrics.invoiceData);
 
   return (
     <div className="space-y-6">
@@ -129,18 +149,29 @@ export default function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>{t('Dashboard.RevenueTrends')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={metrics.revenueByMonth}>
-                <CartesianGrid strokeDasharray="3 3" />
+            </CardHeader>
+            <CardContent>
+            <ResponsiveContainer width="100%" height={400}>
+              <BarChart 
+                data={metrics.invoiceData}
+                margin={{ top: 20, right: 30, bottom: 20, left: 40 }}
+              >
+              <CartesianGrid stroke="#d3d3d3" vertical={false} strokeWidth={0.5}/>
                 <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="revenue" fill="#8884d8" />
+                <YAxis tickFormatter={formatNumber} />
+                <Tooltip content={<CustomTooltip_FormatNumbers />} />
+                <Legend />
+
+                <Bar dataKey="total" fill="#576ddb" radius={[5, 5, 0, 0]} name="Total Invoiced Amount" isAnimationActive={true}>
+                  <LabelList dataKey="total" position="top" fill="#576ddb" formatter={formatLabel} />
+                </Bar>
+                <Bar dataKey="paid" fill="#4CBB17" radius={[5, 5, 0, 0]} name="Paid Amount" isAnimationActive={true}>
+                  <LabelList dataKey="paid" position="top" fill="#4CBB17" formatter={formatLabel} />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
-          </CardContent>
+
+            </CardContent>
         </Card>
 
         {/* Employee Statistics */}

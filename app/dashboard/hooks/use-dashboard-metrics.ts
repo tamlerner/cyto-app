@@ -22,6 +22,12 @@ interface DashboardMetrics {
     month: string;
     revenue: number;
   }>;
+  invoiceData: Array<{
+    month: string;
+    paid: number;
+    total: number;
+    
+  }>;
   employeeGrowth: Array<{
     month: string;
     count: number;
@@ -58,6 +64,7 @@ export function useDashboardMetrics() {
     monthlyRevenue: { usd: 0, eur: 0, aoa: 0 },
     employeeStats: { total: 0, active: 0, onLeave: 0, terminated: 0 },
     revenueByMonth: [],
+    invoiceData: [],
     employeeGrowth: [],
     clientAcquisition: [],
     trends: {
@@ -102,11 +109,70 @@ export function useDashboardMetrics() {
 
         if (clientError) throw clientError;
 
-        // Get total invoices and calculate trend
+        // Get total invoices in supabase
         const { count: currentInvoices, error: invoiceError } = await supabase
           .from('invoices')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id);
+
+        // Fetch all invoices data
+        const { data: invoices, error: fetchError } = await supabase
+        .from('invoices')
+        .select('*')
+        .eq('user_id', user.id);
+
+        if (fetchError) {
+          console.error('Error fetching all invoices:', fetchError);
+          return;
+        }
+
+        console.log('Invoices:', invoices); // Log the invoices data
+
+        // Initialize the array for the last 6 months
+        const lastSixMonths = Array.from({ length: 6 }, (_, index) => {
+          const date = new Date();
+          date.setMonth(date.getMonth() - index);
+          return date.toLocaleString('default', { month: 'short', year: 'numeric' });
+        }).reverse(); // Reverse to have the current month first
+
+        // Initialize the data structure for invoiceData
+        const invoiceData: Array<{ month: string; total: number; paid: number }> = lastSixMonths.map(month => ({
+          month,
+          total: 0, // Initialize total invoices for each month
+          paid: 0   // Initialize paid invoices for each month
+        }));
+
+        invoices.forEach(invoice => {
+          const invoiceDate = new Date(invoice.created_at);
+          const monthIndex = lastSixMonths.findIndex(month => {
+            const [monthName, year] = month.split(' ');
+            return (
+              invoiceDate.toLocaleString('default', { month: 'short' }) === monthName &&
+              invoiceDate.getFullYear().toString() === year
+            );
+          });
+        
+          if (monthIndex !== -1) {
+            // Increment total amount for the month based on status
+            if (['paid', 'overdue', 'sent'].includes(invoice.status)) {
+              invoiceData[monthIndex].total += invoice.total_usd; // Assuming 'amount' is the field for the invoice amount
+            }
+        
+            // Increment paid invoices count if the status is 'paid'
+            // Increment paid amount if the status is 'paid'
+            if (['paid'].includes(invoice.status)) {
+              invoiceData[monthIndex].paid += invoice.total_usd; // Assuming 'amount' is the field for the invoice amount
+            }
+          }
+        });
+
+        // Format the invoiceData months to 'mmm yy' before returning
+        const formattedInvoiceData = invoiceData.map(data => ({
+          month: new Date(data.month).toLocaleString('default', { month: 'short', year: '2-digit' }),
+          total: data.total,
+          paid: data.paid
+        }));
+        
 
         const { count: lastMonthInvoices } = await supabase
           .from('invoices')
@@ -154,8 +220,13 @@ export function useDashboardMetrics() {
         }, [] as Array<{ month: string; revenue: number }>);
 
         // Calculate trends
-        const clientTrend = lastMonthClients ? ((currentClients - lastMonthClients) / lastMonthClients) * 100 : 0;
-        const invoiceTrend = lastMonthInvoices ? ((currentInvoices - lastMonthInvoices) / lastMonthInvoices) * 100 : 0;
+        const clientTrend = lastMonthClients 
+        ? Math.floor(((currentClients - lastMonthClients) / lastMonthClients) * 100) 
+        : 0;
+
+        const invoiceTrend = lastMonthInvoices 
+          ? Math.floor(((currentInvoices - lastMonthInvoices) / lastMonthInvoices) * 100) 
+          : 0;
 
         if (mounted) {
           setMetrics({
@@ -168,6 +239,7 @@ export function useDashboardMetrics() {
             },
             employeeStats,
             revenueByMonth: revenueByMonth || [],
+            invoiceData: formattedInvoiceData || [],
             employeeGrowth: [], // This would need historical employee data
             clientAcquisition: [], // This would need historical client data
             trends: {
