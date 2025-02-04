@@ -10,8 +10,15 @@
   "Dashboard.EmployeeStats": "Estadísticas de Empleados",
   "Dashboard.VsLastMonth": "vs mes anterior",
   "Dashboard.NewPayment": "Crear Pago 💸",
-  "ExchangeRates": "Tipos de Cambio",
   "ExchangeRate": "Tipo de Cambio",
+
+  "ExchangeRates": {
+    "Converter": "Convertidor",
+    "From": "De",
+    "To": "A",
+    "CurrentRate": "Tasa Actual"
+  },
+
   "TimeRange": {
     "daily": "24H",
     "weekly": "7D",
@@ -96,6 +103,7 @@
   "Products.DeleteError": "Error al eliminar producto/servicio",
   "Products.DeleteConfirm": "¿Estás seguro de que quieres eliminar este producto/servicio?",
   "Products.BulkImport": "Importación de Archivo",
+  "Products.ImportError": "Error a la Importación de Archivo",
   "Products.ImportCSV": "Importación CSV",
   "Invoices": "Facturas",
   "Invoices.Description": "Gestiona tus facturas",

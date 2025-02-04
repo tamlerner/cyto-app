@@ -10,7 +10,6 @@
   "Dashboard.ExchangeRates": "Taux de Change",
   "Dashboard.VsLastMonth": "vs mois précédent",
   "Dashboard.NewPayment": "Nouveau Paiement 💸",
-  "ExchangeRates": "Taux de Change",
   "ExchangeRate": "Taux de Change",
   "TimeRange": {
     "daily": "24H",
@@ -31,6 +30,14 @@
     "up": "Augmenté de",
     "down": "Diminué de"
   },
+
+  "ExchangeRates": {
+    "Converter": "Convertisseur",
+    "From": "De",
+    "To": "À",
+    "CurrentRate": "Taux Actuel"
+  },
+
   "Rate": "Taux",
   "Change": "Variation",
   "LastUpdate": "Dernière mise à jour",
@@ -96,6 +103,7 @@
   "Products.DeleteError": "Erreur lors de la suppression du produit/service",
   "Products.DeleteConfirm": "Êtes-vous sûr de vouloir supprimer ce produit/service ?",
   "Products.BulkImport": "Importation Groupée",
+  "Products.ImportError": "Erreur lors de l'importation groupée",
   "Products.ImportCSV": "Importation CSV",
   "Invoices": "Factures",
   "Invoices.Description": "Gérez vos factures",

@@ -19,6 +19,12 @@
     "Terminated": "Terminated"
   },
 
+  "ExchangeRates": {
+    "Converter": "Converter",
+    "From": "From",
+    "To": "To",
+    "CurrentRate": "Current Rate"
+  },
 
   "Clients": "Clients",
   "Clients.Description": "Manage your client information",
@@ -75,6 +81,7 @@
   "Products.DeleteError": "Failed to delete product/service",
   "Products.DeleteConfirm": "Are you sure you want to delete this product/service?",
   "Products.BulkImport": "Bulk Import",
+  "Products.ImportError": "Failed to import product/service",
   "Products.ImportCSV": "Upload CSV",
 
   "Invoices": "Invoices",

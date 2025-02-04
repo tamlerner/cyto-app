@@ -10,7 +10,6 @@
   "Dashboard.ExchangeRates": "Taxas de Câmbio",
   "Dashboard.VsLastMonth": "vs mês anterior",
   "Dashboard.NewPayment": "Novo Pagamento 💸",
-  "ExchangeRates": "Taxas de Câmbio",
   "ExchangeRate": "Taxa de Câmbio",
   "TimeRange": {
     "daily": "24H",
@@ -31,6 +30,14 @@
     "up": "Aumentou",
     "down": "Diminuiu"
   },
+
+  "ExchangeRates": {
+    "Converter": "Conversor",
+    "From": "De",
+    "To": "Para",
+    "CurrentRate": "Taxa Atual"
+  },
+
   "Rate": "Taxa",
   "Change": "Variação",
   "LastUpdate": "Última atualização",
@@ -96,6 +103,7 @@
   "Products.DeleteError": "Erro ao excluir produto/serviço",
   "Products.DeleteConfirm": "Tem certeza que deseja excluir este produto/serviço?",
   "Products.BulkImport": "Importação em Massa",
+  "Products.ImportError": "Erro ao importar em massa",
   "Products.ImportCSV": "Importar CSV",
   "Invoices": "Faturas",
   "Invoices.Description": "Gerencie suas faturas",
