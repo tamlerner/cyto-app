@@ -25,23 +25,37 @@ export function useCreateInvoice() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No authenticated user');
 
-      // Insert invoice
+      // Get default company first (required by schema)
+      const { data: companyData, error: companyError } = await supabase
+      .from('invoice_companies')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+      if (companyError) throw companyError;
+      if (!companyData) throw new Error('No company found');
+
+
+      // Insert invoice with all required fields
       const { data: invoiceData, error: invoiceError } = await supabase
-        .from('invoices')
-        .insert({
-          invoice_number,
-          client_id: data.client_id,
-          issue_date: data.issue_date.toISOString(),
-          due_date: data.due_date.toISOString(),
-          subtotal,
-          tax_total,
-          total,
-          notes: data.notes,
-          status: 'draft',
-          user_id: user.id
-        })
-        .select()
-        .single();
+      .from('invoices')
+      .insert({
+        invoice_number,
+        client_id: data.client_id,
+        company_id: companyData.id,  // Required
+        issue_date: data.issue_date.toISOString(),
+        due_date: data.due_date.toISOString(),
+        currency: data.currency,     // Required
+        language: data.language,     // Required
+        subtotal,
+        tax_total,
+        total,
+        notes: data.notes,
+        status: 'draft',
+        user_id: user.id
+      })
+      .select()
+      .single();
 
       if (invoiceError) throw invoiceError;
       if (!invoiceData) throw new Error('Failed to create invoice');
