@@ -13,6 +13,7 @@ Welcome to the technical documentation for the CYTO platform. This document prov
 - **Database**: Supabase (PostgreSQL) with Row Level Security.
 - **State Management**: React Context + Custom Hooks.
 - **Internationalization**: i18next with language detection.
+- **Bug Detection tool**: Sentry.io
 
 ### Technology Stack
 
