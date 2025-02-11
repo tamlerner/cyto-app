@@ -13,22 +13,9 @@ import { ExchangeRatesGrid } from './components/exchange-rates/exchange-rates-gr
 import { formatCurrency } from '@/lib/utils/currency';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  TooltipProps,
-  CartesianGrid,
-  LabelList,
-  ResponsiveContainer,
-  Legend,
-} from 'recharts';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { BarChart, Bar, XAxis, YAxis, TooltipProps, CartesianGrid, LabelList, ResponsiveContainer, Legend } from 'recharts';
+import HorizontalStackChart from './components/HorizontalStackChart';
 
 export default function DashboardPage() {
   const { t } = useTranslation();
@@ -48,7 +35,24 @@ export default function DashboardPage() {
     }
     return null;
   };
-  
+
+  //data to render invoice breakdown per status chart
+  const invoiceSummaryDataCount = [
+    { name: 'Invoices', 
+      paid: metrics_invoices_usd.InvoiceSummary.paid.total_count, 
+      sent:  metrics_invoices_usd.InvoiceSummary.sent.total_count, 
+      overdue: metrics_invoices_usd.InvoiceSummary.overdue.total_count },
+  ];
+
+  // Transform the data into a format where each category is a separate entry
+  const transformedData = [
+    { name: 'Paid', value: invoiceSummaryDataCount[0].paid },
+    { name: 'Sent', value: invoiceSummaryDataCount[0].sent },
+    { name: 'Overdue', value: invoiceSummaryDataCount[0].overdue },
+  ];
+
+  console.log('Invoice Summary Data:', invoiceSummaryDataCount);
+
 
   if (error) {
     return (
@@ -145,7 +149,71 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-4">
+          {loading ? (
+            <>
+              <Skeleton className="h-[120px]" />
+              <Skeleton className="h-[120px]" />
+              <Skeleton className="h-[120px]" />
+              <Skeleton className="h-[120px]" />
+            </>
+          ) : (
+            <>
+              {/* Existing MetricCards... */}
+            </>
+          )}
+        </div>
+
+        {/* Invoice Summary Card */}
+        <Card className="bg-transparent shadow-none">
+          <CardHeader>
+            <CardTitle>Invoice Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="min-w-full table-auto border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-300">
+                    <th className="py-2 px-4 text-left">Status</th>
+                    <th className="py-2 px-4 text-left">Number of Invoices</th>
+                    <th className="py-2 px-4 text-left">Amount Outstanding</th>
+                  </tr>
+                </thead>
+                <tbody>
+                {(["paid", "sent", "overdue"] as const).map((status) => (
+                  <tr key={status}>
+                    <td className="py-2 px-4 capitalize">{status}</td>
+                    <td className="py-2 px-4">
+                      {new Intl.NumberFormat("en-US").format(
+                        metrics_invoices_usd.InvoiceSummary[status].total_count
+                      )}
+                    </td>
+                    <td className="py-2 px-4">
+                      {new Intl.NumberFormat("en-US", {
+                        style: "currency",
+                        currency: "USD",
+                      }).format(metrics_invoices_usd.InvoiceSummary[status].total_amount)}
+                    </td>
+                  </tr>
+                ))}
+                </tbody>
+              </table>
+            </div>
+            {/* Horizontal Stacked Bar Chart */}
+            <div className="mt-8"> {/* Adding margin for spacing */}
+              <HorizontalStackChart />
+            </div>
+
+            
+
+
+          </CardContent>
+        </Card>
+      </div>
+
+
+      <div className="grid gap-4 md:grid-cols-2">
         {/* Revenue Trends */}
         <Card>
           <CardHeader>
@@ -155,7 +223,7 @@ export default function DashboardPage() {
             <ResponsiveContainer width="100%" height={400}>
             <BarChart 
               data={metrics_invoices_usd.LastSixMo_Revenues}
-              margin={{ top: 20, right: 30, bottom: 20, left: 40 }}
+              //margin={{ top: 20, right: 30, bottom: 20, left: 40 }}
             >
               <CartesianGrid stroke="#d3d3d3" vertical={false} strokeWidth={0.5}/>
               

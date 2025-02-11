@@ -10,11 +10,30 @@ interface DashboardInvoiceMetrics_usd {
     Paid_Invoices: number;
     Sent_Overview_Invoices: number;
   }>;
+  InvoiceSummary: {
+    overdue: {
+      total_count: number;
+      total_amount: number;
+    };
+    paid: {
+      total_count: number;
+      total_amount: number;
+    };
+    sent: {
+      total_count: number;
+      total_amount: number;
+    };
+  }; // Add closing brace and semicolon here
 }
 
 export function useDashboardInvoiceMetrics_usd() {
   const [metrics_invoices_usd, setMetrics] = useState<DashboardInvoiceMetrics_usd>({
     LastSixMo_Revenues: [],
+    InvoiceSummary: {
+      overdue: { total_count: 0, total_amount: 0 },
+      paid: { total_count: 0, total_amount: 0 },
+      sent: { total_count: 0, total_amount: 0 }
+    }
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,13 +49,12 @@ export function useDashboardInvoiceMetrics_usd() {
         setLoading(true);
         setError(null);
 
+        //Fetch USD Revenue data per month
         const { data, error } = await supabase.rpc('get_paid_and_sent_amount_per_month_usd', { user_id: user.id });
 
         if (error) {
           throw error;
         }
-
-        // Format the data into the desired format
         const formattedData: Array<{
           Date_str: string;
           Paid_Invoices: number;
@@ -53,13 +71,44 @@ export function useDashboardInvoiceMetrics_usd() {
             Sent_Overview_Invoices: item.sent_overdue_amount,
           });
         });
-
-
         const reversedFormattedData = formattedData.reverse();
+
+        // Fetch the invoice summary data
+        const { data: invoiceSummaryData, error: invoiceSummaryError } = await supabase.rpc('get_usd_invoice_summary');
+        if (invoiceSummaryError) {
+          throw invoiceSummaryError;
+        }
+
+        // Format the invoice summary data into the two-level object
+        const formattedSummary = {
+          overdue: {
+            total_count: 0,
+            total_amount: 0,
+          },
+          paid: {
+            total_count: 0,
+            total_amount: 0,
+          },
+          sent: {
+            total_count: 0,
+            total_amount: 0,
+          },
+        };
+      
+        invoiceSummaryData.forEach((item: { category: 'overdue' | 'paid' | 'sent'; total_count: number; total_amount: number }) => {
+          if (formattedSummary[item.category]) {
+            formattedSummary[item.category].total_count = item.total_count;
+            formattedSummary[item.category].total_amount = item.total_amount;
+          }
+        });
+
+        console.log("InvoiceSummary Data:", formattedSummary);
+
 
         if (mounted) {
           setMetrics({
             LastSixMo_Revenues: reversedFormattedData,
+            InvoiceSummary: formattedSummary,
           });
         }
 
