@@ -13,10 +13,11 @@ import { AppHeader } from '@/components/header/app-header';
 import { AuthModal } from '@/components/auth/auth-modal';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import '@/lib/i18n/init';
+import { useEffect } from 'react';
 
 const PUBLIC_ROUTES = ['/login', '/register'];
 
-export default function RootLayout({
+function ClientLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -24,34 +25,54 @@ export default function RootLayout({
   const pathname = usePathname();
   const isPublicRoute = PUBLIC_ROUTES.includes(pathname || '');
 
+  useEffect(() => {
+    // Update the document title
+    document.title = 'CYTO | Business Suite';
+  }, []);
+
+  return (
+    <Providers>
+      <AuthProvider>
+        <TooltipProvider>
+          <AuthGuard>
+            <Suspense fallback={<LoadingSpinner />}>
+              {isPublicRoute ? (
+                children
+              ) : (
+                <div className="min-h-screen bg-background">
+                  <AppHeader />
+                  <div className="flex h-screen pt-16">
+                    <Sidebar />
+                    <main className="flex-1 overflow-y-auto">
+                      {children}
+                    </main>
+                  </div>
+                  <AuthModal />
+                </div>
+              )}
+            </Suspense>
+          </AuthGuard>
+        </TooltipProvider>
+      </AuthProvider>
+      <Toaster />
+    </Providers>
+  );
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <title>CYTO | Business Suite</title>
+        <meta name="description" content="Financial management and business productivity platform for African businesses" />
+        <link rel="icon" href="/favicon.ico" />
+      </head>
       <body>
-        <Providers>
-          <AuthProvider>
-            <TooltipProvider>
-              <AuthGuard>
-                <Suspense fallback={<LoadingSpinner />}>
-                  {isPublicRoute ? (
-                    children
-                  ) : (
-                    <div className="min-h-screen bg-background">
-                      <AppHeader />
-                      <div className="flex h-screen pt-16">
-                        <Sidebar />
-                        <main className="flex-1 overflow-y-auto">
-                          {children}
-                        </main>
-                      </div>
-                      <AuthModal />
-                    </div>
-                  )}
-                </Suspense>
-              </AuthGuard>
-            </TooltipProvider>
-          </AuthProvider>
-        </Providers>
-        <Toaster />
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );
