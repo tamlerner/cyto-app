@@ -176,6 +176,7 @@
   },
   "Settings": {
     "Title": "Paramètres",
+    "ChangeAvatar": "Changer mon Avatar",
     "Description": "Gérez les paramètres et préférences de votre compte",
     "Account": "Compte",
     "Security": "Sécurité",

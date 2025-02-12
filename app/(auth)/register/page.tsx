@@ -40,7 +40,6 @@ import { registerSchema, type RegisterFormData } from '@/lib/validations/auth';
 const steps = [
   { title: 'Account', icon: User, description: 'Create your account' },
   { title: 'Verify', icon: Mail, description: 'Verify your email' },
-  { title: 'Profile', icon: UserCircle2, description: 'Complete your profile' },
   { title: 'Done', icon: CheckCircle, description: 'Ready to go!' }
 ];
 
@@ -61,6 +60,8 @@ export default function RegisterPage() {
       email: '',
       phoneNumber: '',
       countryCode: '+244',
+      country: '', // Add this
+      city: '', // Add this
       password: '',
       confirmPassword: '',
     },
@@ -85,18 +86,42 @@ export default function RegisterPage() {
 
   const handleEmailVerification = async () => {
     try {
+      const formData = form.getValues();
+      
+      // Validate all required fields are filled
+      if (!formData.firstName || !formData.lastName || !formData.country || !formData.city) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Please fill in all required fields"
+        });
+        return;
+      }
+  
       setLoading(true);
-      const email = form.getValues('email');
-      const password = form.getValues('password');
       
       // First sign up the user
-      const signUpResult = await signUpWithEmail(email, password);
+      const signUpResult = await signUpWithEmail(formData.email, formData.password);
       if (!signUpResult.success) throw new Error(signUpResult.error);
-
-      // Then send the magic link
-      const magicLinkResult = await sendMagicLink(email);
+  
+      // Then update their profile
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+  
+      const profileResult = await updateUserProfile(user?.id, {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        phone_number: formData.phoneNumber,
+        country: formData.country,
+        city: formData.city
+      });
+  
+      if (!profileResult.success) throw new Error(profileResult.error);
+  
+      // Finally send the magic link
+      const magicLinkResult = await sendMagicLink(formData.email);
       if (!magicLinkResult.success) throw new Error(magicLinkResult.error);
-
+  
       setStep(2);
       toast({
         title: "Verification email sent",
@@ -246,9 +271,26 @@ export default function RegisterPage() {
                       className="w-full h-11 font-medium"
                       onClick={handleGoogleSignInClick}
                     >
-                      <img src="/google.svg" alt="Google" className="w-5 h-5 mr-2" />
-                      Continue with Google
-                    </Button>
+                        <svg className="w-5 h-5 mr-2" viewBox="0 0 48 48">
+                          <path
+                            fill="#FFC107"
+                            d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"
+                          />
+                          <path
+                            fill="#FF3D00"
+                            d="m6.306 14.691 6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"
+                          />
+                          <path
+                            fill="#4CAF50"
+                            d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"
+                          />
+                          <path
+                            fill="#1976D2"
+                            d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"
+                          />
+                        </svg>
+                        Continue with Google
+                      </Button>
 
                     <div className="relative">
                       <div className="absolute inset-0 flex items-center">
@@ -262,6 +304,97 @@ export default function RegisterPage() {
                     </div>
 
                     <div className="space-y-4">
+                      {/* Personal Information */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="firstName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium flex items-center gap-2">
+                                <User className="w-4 h-4" />
+                                {t('Auth.FirstName')}
+                              </FormLabel>
+                              <FormControl>
+                                <Input {...field} className="h-11" placeholder="First name" />
+                              </FormControl>
+                              <FormMessage className="text-xs" />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="lastName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium flex items-center gap-2">
+                                <User className="w-4 h-4" />
+                                {t('Auth.LastName')}
+                              </FormLabel>
+                              <FormControl>
+                                <Input {...field} className="h-11" placeholder="Last name" />
+                              </FormControl>
+                              <FormMessage className="text-xs" />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* Location Information */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="country"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium flex items-center gap-2">
+                                <Building className="w-4 h-4" />
+                                {t('Auth.Country')}
+                              </FormLabel>
+                              <FormControl>
+                                <Input {...field} className="h-11" placeholder="Country" />
+                              </FormControl>
+                              <FormMessage className="text-xs" />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="city"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium flex items-center gap-2">
+                                <Building className="w-4 h-4" />
+                                {t('Auth.City')}
+                              </FormLabel>
+                              <FormControl>
+                                <Input {...field} className="h-11" placeholder="City" />
+                              </FormControl>
+                              <FormMessage className="text-xs" />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* Contact Information */}
+                      <FormField
+                        control={form.control}
+                        name="phoneNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium flex items-center gap-2">
+                              <Phone className="w-4 h-4" />
+                              {t('Auth.Phone')}
+                            </FormLabel>
+                            <FormControl>
+                              <Input {...field} type="tel" className="h-11" placeholder="Phone number" />
+                            </FormControl>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Email & Password */}
                       <FormField
                         control={form.control}
                         name="email"
@@ -353,7 +486,7 @@ export default function RegisterPage() {
                   <CardContent className="space-y-6 pt-6">
                     <div className="p-4 bg-muted rounded-lg">
                       <AlertCircle className="w-6 h-6 text-primary mb-2" />
-                      <p className="text-sm">
+                      <p className="text-sm text-foreground">
                         We've sent a verification link to your email. Please check your inbox and click the link to verify your account.
                       </p>
                     </div>
@@ -376,79 +509,6 @@ export default function RegisterPage() {
               )}
 
               {step === 3 && (
-                <Card>
-                  <CardContent className="space-y-6 pt-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="firstName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-medium flex items-center gap-2">
-                              <User className="w-4 h-4" />
-                              {t('Auth.FirstName')}
-                            </FormLabel>
-                            <FormControl>
-                              <Input {...field} className="h-11" placeholder="First name" />
-                            </FormControl>
-                            <FormMessage className="text-xs" />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="lastName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-medium flex items-center gap-2">
-                              <User className="w-4 h-4" />
-                              {t('Auth.LastName')}
-                            </FormLabel>
-                            <FormControl>
-                              <Input {...field} className="h-11" placeholder="Last name" />
-                            </FormControl>
-                            <FormMessage className="text-xs" />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    <FormField
-                      control={form.control}
-                      name="phoneNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium flex items-center gap-2">
-                            <Phone className="w-4 h-4" />
-                            {t('Auth.Phone')}
-                          </FormLabel>
-                          <FormControl>
-                            <Input {...field} type="tel" className="h-11" placeholder="Phone number" />
-                          </FormControl>
-                          <FormMessage className="text-xs" />
-                        </FormItem>
-                      )}
-                    />
-
-                    <Button
-                      onClick={handleCompleteProfile}
-                      className="w-full h-11"
-                      disabled={loading}
-                    >
-                      {loading ? (
-                        <div className="flex items-center gap-2">
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Completing profile...
-                        </div>
-                      ) : (
-                        'Complete Profile'
-                      )}
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-
-              {step === 4 && (
                 <Card>
                   <CardContent className="space-y-6 pt-6 text-center">
                     <motion.div

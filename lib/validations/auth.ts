@@ -1,16 +1,16 @@
-import * as z from 'zod';
+import * as z from 'zod'
 
 export const registerSchema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
+  firstName: z.string().min(2, 'First name must be at least 2 characters'),
+  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
-  phoneNumber: z.string().min(1, 'Phone number is required'),
-  countryCode: z.string().min(1, 'Country code is required'),
-  password: z
-    .string()
+  phoneNumber: z.string().min(9, 'Phone number must be at least 9 digits'),
+  countryCode: z.string().default('+244'),
+  country: z.string().min(2, 'Country is required'),
+  city: z.string().min(2, 'City is required'),
+  password: z.string()
     .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z].*[A-Z]/, 'Password must contain at least 2 uppercase letters')
-    .regex(/[^a-zA-Z0-9]/, 'Password must contain at least 1 special character'),
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain at least one uppercase letter, one lowercase letter, and one number'),
   confirmPassword: z.string()
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",

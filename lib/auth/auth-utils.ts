@@ -87,36 +87,32 @@ export async function resendMagicLink(email: string) {
   return sendMagicLink(email);
 }
 
-export async function updateUserProfile(userId: string, profile: {
-  first_name?: string;
-  last_name?: string;
-  phone_number?: string;
-}) {
-  const supabase = createClientComponentClient();
-
+export const updateUserProfile = async (userId: string, profileData: {
+  first_name: string;
+  last_name: string;
+  phone_number: string;
+  country: string;
+  city: string;
+}) => {
   try {
-    // Update auth.users metadata
-    const { error: updateAuthError } = await supabase.auth.updateUser({
-      data: profile
-    });
-
-    if (updateAuthError) throw updateAuthError;
-
-
-    const { error: verificationError } = await supabase
-      .from('user_verification')
+    const supabase = createClientComponentClient();
+    
+    const { error } = await supabase
+      .from('profiles')
       .upsert({
-        id: userId,
-        verification_status: 'completed'
+        user_id: userId,
+        first_name: profileData.first_name,
+        last_name: profileData.last_name,
+        phone_number: profileData.phone_number,
+        country: profileData.country,
+        city: profileData.city,
+        updated_at: new Date().toISOString()
       });
 
-    if (verificationError) {
-      console.error('Verification update error:', verificationError);
-    }
-
+    if (error) throw error;
+    
     return { success: true };
   } catch (error: any) {
-    console.error('Error updating profile:', error);
     return { success: false, error: error.message };
   }
 }

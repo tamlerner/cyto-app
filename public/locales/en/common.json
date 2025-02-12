@@ -177,6 +177,7 @@
 
   "Settings": {
     "Title": "Settings",
+    "ChangeAvatar": "Change Avatar",
     "Description": "Manage your account settings and preferences",
     "Account": "Account",
     "Security": "Security",
