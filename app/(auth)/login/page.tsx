@@ -103,14 +103,16 @@ export default function LoginPage() {
             className="flex flex-col items-center space-y-4"
             variants={fadeIn}
           >
-            <Image
-              src="/cyto-logo.png"
-              alt="CYTO"
-              width={120}
-              height={40}
-              className="dark:invert"
-              priority
-            />
+            <div className="mt-16 mb-4"> {/* Added space before the logo */}
+              <Image
+                src="/cyto-logo.png"
+                alt="CYTO"
+                width={60}
+                height={20}
+                className="dark:invert-0"
+                priority
+              />
+            </div>
             <div className="text-center space-y-2">
               <h2 className="text-2xl font-semibold tracking-tight">
                 {t('Auth.WelcomeBack')} <span className="inline-block animate-bounce">👋</span>
