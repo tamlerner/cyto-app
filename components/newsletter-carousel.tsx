@@ -26,32 +26,27 @@ const NewsletterCarousel = () => {
     {
       title: "Corporate Updates",
       description: "CYTO at the Angola–France Business Forum in Paris",
-      link: "https://www.appcyto.com/en/news/cyto-at-the-angola-france-business-forum-in-paris",
+      link: "https://www.linkedin.com/feed/update/urn:li:activity:7291029798817046528",
       imageUrl: "/placeholder5.png"
     },
 
     {
       title: "Corporate Updates",
       description: "Reasons we look forward to 2025",
-      link: "https://www.appcyto.com/en/news/2025-roadmap",
+      link: "https://www.linkedin.com/feed/update/urn:li:activity:7287052794534973441",
       imageUrl: "/placeholder1.png"
     },
-    {
-      title: "Industry Updates",
-      description: "The Business Implications of President Biden's Recent Visit to Angola",
-      link: "https://www.appcyto.com/en/news/joe-biden-angola",
-      imageUrl: "/placeholder2.png"
-    },
+  
     {
       title: "Corporate Updates",
       description: "CYTO at WebSummit 2024",
-      link: "https://www.appcyto.com/en/news/cyto-at-websummit-2024",
+      link: "https://www.linkedin.com/feed/update/urn:li:activity:7275471047565463552",
       imageUrl: "/placeholder3.png"
     },
     {
       title: "Industry Updates",
       description: "Donald Trump's Victory: Implications for Africa",
-      link: "https://www.appcyto.com/en/news/us-election-trump-africa",
+      link: "https://www.linkedin.com/feed/update/urn:li:activity:7261679089298644992",
       imageUrl: "/placeholder4.png"
     },
   ]
