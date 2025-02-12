@@ -3,7 +3,7 @@
 import { LanguageSelector } from '@/components/language-selector';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { CytoTitle } from '@/components/ui/cyto-title';
-import { UserDropdown } from './user-dropdown';
+import UserDropdown from './user-dropdown';
 
 export function AppHeader() {
   return (
