@@ -8,8 +8,9 @@ import Link from 'next/link';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { motion } from 'framer-motion';
 import { 
-  User, Mail, Lock, Phone, Calendar, Upload, Building,
-  CheckCircle, AlertCircle, ArrowRight, MapPin, Globe
+  User, Mail, Lock, Phone, Upload, Building,
+  CheckCircle, AlertCircle, ArrowRight, UserCircle2,
+  Loader2
 } from 'lucide-react';
 import {
   Form,
@@ -26,21 +27,27 @@ import { LanguageSelector } from '@/components/language-selector';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { CytoTitle } from '@/components/ui/cyto-title';
 import { Progress } from '@/components/ui/progress';
+import { Card, CardContent } from '@/components/ui/card';
+import { 
+  signUpWithEmail,
+  sendMagicLink,
+  resendMagicLink,
+  updateUserProfile,
+  handleGoogleSignIn 
+} from '@/lib/auth/auth-utils';
 import { registerSchema, type RegisterFormData } from '@/lib/validations/auth';
 
 const steps = [
-  { title: 'Account', icon: User },
-  { title: 'Verify', icon: Mail },
-  { title: 'Details', icon: Phone },
-  { title: 'Documents', icon: Upload },
-  { title: 'Complete', icon: CheckCircle }
+  { title: 'Account', icon: User, description: 'Create your account' },
+  { title: 'Verify', icon: Mail, description: 'Verify your email' },
+  { title: 'Profile', icon: UserCircle2, description: 'Complete your profile' },
+  { title: 'Done', icon: CheckCircle, description: 'Ready to go!' }
 ];
 
 export default function RegisterPage() {
   const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [verificationCode, setVerificationCode] = useState('');
   const supabase = createClientComponentClient();
   const { toast } = useToast();
   
@@ -65,21 +72,35 @@ export default function RegisterPage() {
     exit: { opacity: 0, y: -20 }
   };
 
+  const handleGoogleSignInClick = async () => {
+    const success = await handleGoogleSignIn(`${window.location.origin}/auth/callback`);
+    if (!success) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to sign in with Google"
+      });
+    }
+  };
+
   const handleEmailVerification = async () => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signUp({
-        email: form.getValues('email'),
-        password: form.getValues('password'),
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        }
-      });
-      if (error) throw error;
+      const email = form.getValues('email');
+      const password = form.getValues('password');
+      
+      // First sign up the user
+      const signUpResult = await signUpWithEmail(email, password);
+      if (!signUpResult.success) throw new Error(signUpResult.error);
+
+      // Then send the magic link
+      const magicLinkResult = await sendMagicLink(email);
+      if (!magicLinkResult.success) throw new Error(magicLinkResult.error);
+
       setStep(2);
       toast({
         title: "Verification email sent",
-        description: "Please check your inbox",
+        description: "Please check your inbox for the verification link",
         duration: 5000
       });
     } catch (error: any) {
@@ -93,39 +114,61 @@ export default function RegisterPage() {
     }
   };
 
-  const handleDocumentUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: string) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  const handleResendEmail = async () => {
     try {
       setLoading(true);
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('type', type);
-
-      const response = await fetch('/api/document-upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) throw new Error('Upload failed');
+      const email = form.getValues('email');
+      const result = await resendMagicLink(email);
+      
+      if (!result.success) throw new Error(result.error);
       
       toast({
-        title: "Document uploaded",
-        description: "Your document has been successfully uploaded",
+        title: "Email resent",
+        description: "Please check your inbox for the verification link",
       });
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Upload failed",
-        description: error.message,
+        title: "Error",
+        description: error.message
       });
     } finally {
       setLoading(false);
     }
   };
 
-  // Step indicators
+  const handleCompleteProfile = async () => {
+    try {
+      setLoading(true);
+      const formData = form.getValues();
+      
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+
+      const result = await updateUserProfile(user?.id, {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        phone_number: formData.phoneNumber
+      });
+
+      if (!result.success) throw new Error(result.error);
+
+      setStep(4);
+      toast({
+        title: "Profile completed",
+        description: "Your account is now ready to use",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const StepIndicator = () => (
     <div className="flex justify-between mb-8">
       {steps.map((s, i) => {
@@ -140,11 +183,16 @@ export default function RegisterPage() {
             initial={false}
             animate={{ scale: isCurrent ? 1.1 : 1 }}
           >
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center
-              ${isCurrent ? 'bg-primary/20' : isComplete ? 'bg-green-500/20' : 'bg-muted'}`}>
-              <Icon className="w-5 h-5" />
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center
+              ${isCurrent ? 'bg-primary/20 ring-2 ring-primary' : 
+                isComplete ? 'bg-green-500/20 ring-2 ring-green-500' : 
+                'bg-muted'}`}>
+              <Icon className="w-6 h-6" />
             </div>
             <span className="text-xs font-medium">{s.title}</span>
+            <span className="text-[10px] text-muted-foreground hidden md:block">
+              {s.description}
+            </span>
           </motion.div>
         );
       })}
@@ -159,11 +207,10 @@ export default function RegisterPage() {
       </div>
 
       <motion.div 
-        className="w-full max-w-md space-y-8 bg-card rounded-xl shadow-lg p-8 border border-border relative overflow-hidden"
+        className="w-full max-w-2xl space-y-8 bg-card rounded-xl shadow-lg p-8 border border-border relative overflow-hidden"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        {/* Progress bar */}
         <div className="absolute top-0 left-0 w-full">
           <Progress value={progress} className="h-1" />
         </div>
@@ -181,7 +228,7 @@ export default function RegisterPage() {
         <StepIndicator />
 
         <Form {...form}>
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
             <motion.div
               key={step}
               initial="initial"
@@ -191,232 +238,237 @@ export default function RegisterPage() {
               className="space-y-6"
             >
               {step === 1 && (
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium flex items-center gap-2">
-                          <Mail className="w-4 h-4" />
-                          {t('Auth.Email')}
-                        </FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field}
-                            type="email"
-                            className="h-11"
-                            placeholder="Enter your email"
-                          />
-                        </FormControl>
-                        <FormMessage className="text-xs" />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium flex items-center gap-2">
-                          <Lock className="w-4 h-4" />
-                          {t('Auth.Password')}
-                        </FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field}
-                            type="password"
-                            className="h-11"
-                            placeholder="Create a strong password"
-                          />
-                        </FormControl>
-                        <FormMessage className="text-xs" />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium flex items-center gap-2">
-                          <Lock className="w-4 h-4" />
-                          {t('Auth.ConfirmPassword')}
-                        </FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field}
-                            type="password"
-                            className="h-11"
-                            placeholder="Confirm your password"
-                          />
-                        </FormControl>
-                        <FormMessage className="text-xs" />
-                      </FormItem>
-                    )}
-                  />
-                  <Button 
-                    onClick={handleEmailVerification}
-                    className="w-full h-11 mt-6 font-medium"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        Verifying...
+                <Card>
+                  <CardContent className="space-y-6 pt-6">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full h-11 font-medium"
+                      onClick={handleGoogleSignInClick}
+                    >
+                      <img src="/google.svg" alt="Google" className="w-5 h-5 mr-2" />
+                      Continue with Google
+                    </Button>
+
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t" />
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        Continue
-                        <ArrowRight className="w-4 h-4" />
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-card px-2 text-muted-foreground">
+                          Or continue with email
+                        </span>
                       </div>
-                    )}
-                  </Button>
-                </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium flex items-center gap-2">
+                              <Mail className="w-4 h-4" />
+                              {t('Auth.Email')}
+                            </FormLabel>
+                            <FormControl>
+                              <Input 
+                                {...field}
+                                type="email"
+                                className="h-11"
+                                placeholder="Enter your email"
+                              />
+                            </FormControl>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium flex items-center gap-2">
+                              <Lock className="w-4 h-4" />
+                              {t('Auth.Password')}
+                            </FormLabel>
+                            <FormControl>
+                              <Input 
+                                {...field}
+                                type="password"
+                                className="h-11"
+                                placeholder="Create a strong password"
+                              />
+                            </FormControl>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium flex items-center gap-2">
+                              <Lock className="w-4 h-4" />
+                              {t('Auth.ConfirmPassword')}
+                            </FormLabel>
+                            <FormControl>
+                              <Input 
+                                {...field}
+                                type="password"
+                                className="h-11"
+                                placeholder="Confirm your password"
+                              />
+                            </FormControl>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <Button 
+                      onClick={handleEmailVerification}
+                      className="w-full h-11 font-medium"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Verifying...
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          Continue
+                          <ArrowRight className="w-4 h-4" />
+                        </div>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
               )}
 
               {step === 2 && (
-                <div className="space-y-6">
-                  <div className="p-4 bg-muted rounded-lg">
-                    <AlertCircle className="w-6 h-6 text-primary mb-2" />
-                    <p className="text-sm">
-                      We've sent a verification code to your email. Please enter it below.
-                    </p>
-                  </div>
-                  <Input
-                    value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value)}
-                    placeholder="Enter verification code"
-                    className="h-11 text-center text-lg tracking-wider"
-                    maxLength={6}
-                  />
-                  <Button
-                    onClick={() => setStep(3)}
-                    className="w-full h-11"
-                    disabled={verificationCode.length !== 6}
-                  >
-                    Verify Email
-                  </Button>
-                </div>
+                <Card>
+                  <CardContent className="space-y-6 pt-6">
+                    <div className="p-4 bg-muted rounded-lg">
+                      <AlertCircle className="w-6 h-6 text-primary mb-2" />
+                      <p className="text-sm">
+                        We've sent a verification link to your email. Please check your inbox and click the link to verify your account.
+                      </p>
+                    </div>
+                    <Button
+                      onClick={handleResendEmail}
+                      className="w-full h-11"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Sending...
+                        </div>
+                      ) : (
+                        'Resend verification email'
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
               )}
 
               {step === 3 && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
+                <Card>
+                  <CardContent className="space-y-6 pt-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="firstName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium flex items-center gap-2">
+                              <User className="w-4 h-4" />
+                              {t('Auth.FirstName')}
+                            </FormLabel>
+                            <FormControl>
+                              <Input {...field} className="h-11" placeholder="First name" />
+                            </FormControl>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="lastName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium flex items-center gap-2">
+                              <User className="w-4 h-4" />
+                              {t('Auth.LastName')}
+                            </FormLabel>
+                            <FormControl>
+                              <Input {...field} className="h-11" placeholder="Last name" />
+                            </FormControl>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
                     <FormField
                       control={form.control}
-                      name="firstName"
+                      name="phoneNumber"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium flex items-center gap-2">
-                            <User className="w-4 h-4" />
-                            {t('Auth.FirstName')}
+                            <Phone className="w-4 h-4" />
+                            {t('Auth.Phone')}
                           </FormLabel>
                           <FormControl>
-                            <Input {...field} className="h-11" />
+                            <Input {...field} type="tel" className="h-11" placeholder="Phone number" />
                           </FormControl>
                           <FormMessage className="text-xs" />
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name="lastName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium flex items-center gap-2">
-                            <User className="w-4 h-4" />
-                            {t('Auth.LastName')}
-                          </FormLabel>
-                          <FormControl>
-                            <Input {...field} className="h-11" />
-                          </FormControl>
-                          <FormMessage className="text-xs" />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  
-                  <FormField
-                    control={form.control}
-                    name="phoneNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium flex items-center gap-2">
-                          <Phone className="w-4 h-4" />
-                          {t('Auth.Phone')}
-                        </FormLabel>
-                        <FormControl>
-                          <Input {...field} type="tel" className="h-11" />
-                        </FormControl>
-                        <FormMessage className="text-xs" />
-                      </FormItem>
-                    )}
-                  />
 
-                  <Button
-                    onClick={() => setStep(4)}
-                    className="w-full h-11"
-                  >
-                    Continue
-                  </Button>
-                </div>
+                    <Button
+                      onClick={handleCompleteProfile}
+                      className="w-full h-11"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Completing profile...
+                        </div>
+                      ) : (
+                        'Complete Profile'
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
               )}
 
               {step === 4 && (
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <FormLabel className="text-sm font-medium flex items-center gap-2">
-                      <Upload className="w-4 h-4" />
-                      Identity Document
-                    </FormLabel>
-                    <Input
-                      type="file"
-                      onChange={(e) => handleDocumentUpload(e, 'id')}
-                      accept="image/*,.pdf"
-                      className="h-11"
-                    />
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <FormLabel className="text-sm font-medium flex items-center gap-2">
-                      <Building className="w-4 h-4" />
-                      Proof of Address
-                    </FormLabel>
-                    <Input
-                      type="file"
-                      onChange={(e) => handleDocumentUpload(e, 'address')}
-                      accept="image/*,.pdf"
-                      className="h-11"
-                    />
-                  </div>
-
-                  <Button
-                    onClick={() => setStep(5)}
-                    className="w-full h-11"
-                  >
-                    Submit Documents
-                  </Button>
-                </div>
-              )}
-
-              {step === 5 && (
-                <div className="text-center space-y-6">
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="w-20 h-20 mx-auto bg-green-500/20 rounded-full flex items-center justify-center"
-                  >
-                    <CheckCircle className="w-10 h-10 text-green-500" />
-                  </motion.div>
-                  <h3 className="text-xl font-semibold">Registration Complete!</h3>
-                  <p className="text-muted-foreground">
-                    Your documents have been submitted for verification. We will notify you once the verification is complete.
-                  </p>
-                  <Button asChild className="w-full h-11">
-                    <Link href="/login">Continue to Login</Link>
-                  </Button>
-                </div>
+                <Card>
+                  <CardContent className="space-y-6 pt-6 text-center">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="w-20 h-20 mx-auto bg-green-500/20 rounded-full flex items-center justify-center"
+                    >
+                      <CheckCircle className="w-10 h-10 text-green-500" />
+                    </motion.div>
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-semibold">Registration Complete!</h3>
+                      <p className="text-muted-foreground">
+                        Your account has been created and verified successfully.
+                      </p>
+                    </div>
+                    <Button asChild className="w-full h-11">
+                      <Link href="/login">Continue to Login</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
               )}
             </motion.div>
           </form>
@@ -435,5 +487,5 @@ export default function RegisterPage() {
         )}
       </motion.div>
     </div>
-  );
+  )
 }

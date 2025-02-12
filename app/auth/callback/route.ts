@@ -11,7 +11,26 @@ export async function GET(request: Request) {
     const supabase = createRouteHandlerClient({ cookies });
     
     try {
-      await supabase.auth.exchangeCodeForSession(code);
+      // Exchange code for session
+      const { data: { user } } = await supabase.auth.exchangeCodeForSession(code);
+      
+      if (!user) {
+        throw new Error('No user found');
+      }
+
+      // Check if user has already setup 2FA
+      const { data: verificationData } = await supabase
+        .from('user_verification')
+        .select('two_factor_enabled')
+        .eq('id', user.id)
+        .single();
+
+      // If user hasn't made a 2FA choice yet, redirect to setup
+      if (!verificationData?.two_factor_enabled) {
+        return NextResponse.redirect(new URL('/auth/setup-2fa', requestUrl.origin));
+      }
+
+      // If 2FA is already set up or explicitly disabled, go to dashboard
       return NextResponse.redirect(new URL('/dashboard', requestUrl.origin));
     } catch (error) {
       console.error('Error:', error);
