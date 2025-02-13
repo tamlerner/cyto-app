@@ -1,4 +1,3 @@
-// settings/page.tsx
 'use client';
 
 import { useTranslation } from 'react-i18next';
@@ -10,6 +9,7 @@ import { ChangePasswordForm } from './components/change-password-form';
 import { ChangeEmailForm } from './components/change-email-form';
 import { CompanyInfoForm } from './components/company-info-form';
 import { UserProfileForm } from './components/user-profile-form';
+import { TwoFactorSettings } from './components/two-factor-settings';
 
 export default function SettingsPage() {
   const { t } = useTranslation();
@@ -63,14 +63,25 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="security">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('Settings.ChangePassword')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ChangePasswordForm />
-            </CardContent>
-          </Card>
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('Settings.ChangePassword')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChangePasswordForm />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('Settings.TwoFactorAuth')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TwoFactorSettings />
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
