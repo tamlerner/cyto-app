@@ -15,13 +15,13 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { toast } from '@/components/ui/use-toast';
 
-// Available emoji list
 const EMOJI_OPTIONS = ['👤', '👩', '👨', '🎯', '⭐', '🌟', '💫', '✨', '🔥', '💪', '👑', '💼', '📊', '💡', '🎨'];
 
 interface UserAvatarProps {
@@ -33,6 +33,12 @@ interface UserAvatarProps {
 interface EmojiPickerProps {
   onSelect: (emoji: string) => void;
   onClose: () => void;
+}
+
+interface UserProfile {
+  first_name: string;
+  last_name: string;
+  avatar: string;
 }
 
 const UserAvatar: React.FC<UserAvatarProps> = ({ email, avatar, className }) => {
@@ -66,82 +72,74 @@ const EmojiPicker: React.FC<EmojiPickerProps> = ({ onSelect, onClose }) => {
   );
 };
 
-const UserDropdown: React.FC = () => {
+export default function UserDropdown() {
   const { t } = useTranslation();
   const router = useRouter();
   const { user, signOut } = useAuth();
   const [avatar, setAvatar] = useState<string>('');
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const supabase = createClientComponentClient();
 
-  const fetchAvatar = async () => {
+  const fetchUserProfile = async () => {
     if (!user?.id) return;
 
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('avatar')
+        .select('first_name, last_name, avatar')
         .eq('user_id', user.id)
         .single();
       
-      if (error) {
-        console.error('Error fetching avatar:', error);
-        return;
-      }
+      if (error) throw error;
 
-      console.log('Fetched avatar:', data?.avatar);
-      if (data?.avatar) {
+      if (data) {
+        setProfile(data);
         setAvatar(data.avatar);
       }
     } catch (error) {
-      console.error('Error in fetchAvatar:', error);
+      console.error('Error fetching profile:', error);
     }
   };
 
   useEffect(() => {
-    fetchAvatar();
+    fetchUserProfile();
   }, [user?.id]);
 
   const handleEmojiSelect = async (emoji: string) => {
     if (!user?.id) return;
 
     try {
-      console.log('Updating avatar to:', emoji);
       const { error } = await supabase
         .from('profiles')
         .update({ avatar: emoji })
         .eq('user_id', user.id);
 
-      if (error) {
-        console.error('Error updating avatar:', error);
-        toast({
-          title: "Error",
-          description: "Failed to update avatar",
-          variant: "destructive",
-        });
-        return;
-      }
+      if (error) throw error;
 
-      console.log('Successfully updated avatar');
       setAvatar(emoji);
       toast({
-        title: "Success",
-        description: "Avatar updated successfully",
+        title: t('Settings.Profile.AvatarUpdateSuccess'),
+        description: t('Settings.Profile.AvatarUpdateSuccessMessage'),
+        className: "bg-green-50 border-green-200",
       });
       
-      // Force refresh avatar
-      await fetchAvatar();
+      await fetchUserProfile();
     } catch (error) {
-      console.error('Error in handleEmojiSelect:', error);
+      console.error('Error updating avatar:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('Settings.Profile.AvatarUpdateError'),
+        description: t('Settings.Profile.AvatarUpdateErrorMessage'),
         variant: "destructive",
       });
     }
   };
 
   if (!user) return null;
+
+  const userFullName = profile && (profile.first_name || profile.last_name)
+    ? `${profile.first_name} ${profile.last_name}`.trim()
+    : user.email?.split('@')[0];
 
   return (
     <DropdownMenu>
@@ -158,7 +156,13 @@ const UserDropdown: React.FC = () => {
           />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className="w-64">
+        <div className="flex flex-col space-y-1 p-2">
+          <p className="text-sm font-medium leading-none">{userFullName}</p>
+          <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+        </div>
+        <DropdownMenuSeparator />
+        
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <DropdownMenuItem
@@ -179,6 +183,7 @@ const UserDropdown: React.FC = () => {
             />
           </DialogContent>
         </Dialog>
+        
         <DropdownMenuItem
           onClick={() => router.push('/settings')}
           className="cursor-pointer"
@@ -186,6 +191,9 @@ const UserDropdown: React.FC = () => {
           <Settings className="mr-2 h-4 w-4" />
           {t('Settings.Title')}
         </DropdownMenuItem>
+        
+        <DropdownMenuSeparator />
+        
         <DropdownMenuItem
           onClick={() => signOut()}
           className="cursor-pointer text-destructive focus:text-destructive"
@@ -196,6 +204,4 @@ const UserDropdown: React.FC = () => {
       </DropdownMenuContent>
     </DropdownMenu>
   );
-};
-
-export default UserDropdown;
+}
