@@ -11,7 +11,6 @@
   "Dashboard.VsLastMonth": "vs last month",
   "Dashboard.NewPayment": "Create New Payment 💸",
   
-  
   "Dashboard.EmployeeStatus": {
     "Active": "Active",
     "OnLeave": "On Leave",
@@ -29,7 +28,7 @@
   "Clients": "Clients",
   "Clients.Description": "Manage your client information",
   "Clients.Add": "Add a Client",
-  "Clients.CreateNew" : "Add a Client" , 
+  "Clients.CreateNew": "Add a Client",
   "Clients.CompanyName": "Company Name",
   "Clients.TradeName": "Trade Name",
   "Clients.TaxId": "Tax ID",
@@ -62,7 +61,7 @@
   "Products": "Products & Services",
   "Products.Description": "Manage your products and services catalog",
   "Products.Add": "Add Product/Service",
-  "Products.CreateNew" : "Add Product/Service" ,
+  "Products.CreateNew": "Add Product/Service",
   "Products.NoProducts": "No products or services found",
   "Products.ItemDescription": "Description",
   "Products.UnitPrice": "Price",
@@ -102,7 +101,6 @@
     "paid": "Paid",
     "overdue": "Overdue",
     "voided": "Voided"
-
   },
   "Invoices.Download": "Download Invoice",
   "Invoices.Downloading": "Downloading Invoice...",
@@ -147,15 +145,7 @@
     "SigningInWithGoogle": "Signing in with Google...",
     "OrContinueWith": "Or continue with",
     "SignOutConfirm": "Are you sure you want to sign out?",
-    "GetStarted": "Get started with your free account today",
-    "FirstName": "First Name",
-    "LastName": "Last Name",
-    "Phone": "Phone Number",
-    "ConfirmPassword": "Confirm Password",
-    "HaveAccount": "Already have an account?",
-    "Passwrd": "Password",
-    "CountryCode": "Country Code"
-    
+    "GetStarted": "Get started with your free account today"
   },
 
   "Form": {
@@ -177,7 +167,6 @@
 
   "Settings": {
     "Title": "Settings",
-    "ChangeAvatar": "Change Avatar",
     "Description": "Manage your account settings and preferences",
     "Account": "Account",
     "Security": "Security",
@@ -194,6 +183,26 @@
     "PasswordUpdateError": "Failed to update password",
     "EmailUpdateSuccess": "Email updated successfully",
     "EmailUpdateError": "Failed to update email",
+    "ProfileSection": "Profile Information",
+    "Profile": {
+      "Title": "Profile Information",
+      "FirstName": "First Name",
+      "LastName": "Last Name",
+      "PhoneNumber": "Phone Number",
+      "Country": "Country",
+      "City": "City",
+      "EnterFirstName": "Enter your first name",
+      "EnterLastName": "Enter your last name",
+      "EnterPhoneNumber": "Enter your phone number",
+      "EnterCountry": "Enter your country",
+      "EnterCity": "Enter your city",
+      "SaveChanges": "Save Changes",
+      "SaveSuccess": "Settings Saved",
+      "SaveSuccessMessage": "Your profile information has been updated successfully.",
+      "SaveError": "Failed to Save Settings",
+      "SaveErrorMessage": "There was a problem saving your profile information. Please try again."
+    },
+
     "Company": {
       "Title": "Company Settings",
       "Sections": {

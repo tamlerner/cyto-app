@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChangePasswordForm } from './components/change-password-form';
 import { ChangeEmailForm } from './components/change-email-form';
 import { CompanyInfoForm } from './components/company-info-form';
+import { UserProfileForm } from './components/user-profile-form';
 
 export default function SettingsPage() {
   const { t } = useTranslation();
@@ -29,14 +30,25 @@ export default function SettingsPage() {
         </TabsList>
 
         <TabsContent value="account">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('Settings.ChangeEmail')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ChangeEmailForm />
-            </CardContent>
-          </Card>
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('Settings.ProfileSection')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <UserProfileForm />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('Settings.ChangeEmail')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChangeEmailForm />
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="company">
