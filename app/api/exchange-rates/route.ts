@@ -3,114 +3,110 @@ import { NextResponse } from 'next/server';
 // Configuration
 const API_KEY = '543b55e60c9f7e08e6a86f4d';
 const BASE_URL = `https://v6.exchangerate-api.com/v6/${API_KEY}`;
-const CACHE_DURATION = 30; // Cache duration in seconds
+const CACHE_DURATION = 300; // Cache duration in seconds (5 minutes)
+const RATE_LIMIT_WINDOW = 3600; // 1 hour in seconds
+const MAX_REQUESTS_PER_WINDOW = 1500; // API limit per hour
 
-// Types
-interface ExchangeRateResponse {
-  result: string;
-  conversion_rates: Record<string, number>;
-  time_last_update_unix: number;
-}
-
-interface CombinedRatesResponse {
-  result: string;
-  rates: Record<string, {
-    rate: number;
-    change?: number;
-  }>;
-  timestamp: number;
-  last_updated: string;
-}
+// Rate limiting
+let requestCount = 0;
+let windowStart = Date.now();
 
 // Cache management
-let cachedData: CombinedRatesResponse | null = null;
+let cachedData: any = null;
 let lastFetchTime: number = 0;
 
-async function fetchBaseRates(currency: string): Promise<ExchangeRateResponse> {
-  const response = await fetch(`${BASE_URL}/latest/${currency}`);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch ${currency} rates`);
-  }
-  return response.json();
-}
-
-async function fetchExchangeRates(): Promise<CombinedRatesResponse> {
+async function fetchBaseRates(currency: string): Promise<any> {
+  // Check rate limit
   const now = Date.now();
-  
-  // Return cached data if it's still fresh
-  if (cachedData && (now - lastFetchTime) / 1000 < CACHE_DURATION) {
-    return cachedData;
+  if (now - windowStart > RATE_LIMIT_WINDOW * 1000) {
+    // Reset window
+    requestCount = 0;
+    windowStart = now;
+  }
+
+  if (requestCount >= MAX_REQUESTS_PER_WINDOW) {
+    throw new Error('Rate limit exceeded. Please try again later.');
   }
 
   try {
-    // Fetch USD rates as base for calculations
-    const usdData = await fetchBaseRates('USD');
+    const response = await fetch(`${BASE_URL}/latest/${currency}`, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      }
+    });
     
-    // Calculate rates for all pairs
-    const rates: Record<string, { rate: number; change?: number }> = {
-      // AOA/EUR
-      'AOAEUR': {
-        rate: 1 / (usdData.conversion_rates.AOA * usdData.conversion_rates.EUR),
-      },
-      // AOA/USD
-      'AOAUSD': {
-        rate: 1 / usdData.conversion_rates.AOA,
-      },
-      // EUR/USD
-      'EURUSD': {
-        rate: 1 / usdData.conversion_rates.EUR,
-      },
-      // EUR/AOA
-      'EURAOA': {
-        rate: usdData.conversion_rates.AOA / usdData.conversion_rates.EUR,
-      },
-      // USD/AOA
-      'USDAOA': {
-        rate: usdData.conversion_rates.AOA,
-      },
-    };
-
-    // Calculate changes if we have cached data
-    if (cachedData) {
-      Object.keys(rates).forEach((pair) => {
-        const currentRate = rates[pair].rate;
-        const previousRate = cachedData?.rates[pair]?.rate;
-        if (previousRate) {
-          rates[pair].change = ((currentRate - previousRate) / previousRate) * 100;
-        }
-      });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${currency} rates`);
     }
-
-    const combinedData: CombinedRatesResponse = {
-      result: 'success',
-      rates,
-      timestamp: now,
-      last_updated: new Date().toISOString()
-    };
     
-    // Cache the new data
-    cachedData = combinedData;
-    lastFetchTime = now;
-    
-    return combinedData;
+    requestCount++;
+    return response.json();
   } catch (error) {
-    console.error('Error fetching exchange rates:', error);
+    console.error(`Error fetching ${currency} rates:`, error);
     throw error;
   }
 }
 
 export async function GET() {
   try {
-    const data = await fetchExchangeRates();
+    const now = Date.now();
     
-    return NextResponse.json({
-      ...data,
-      cached: lastFetchTime !== Date.now(),
-      lastUpdate: new Date(lastFetchTime).toISOString()
+    // Return cached data if it's still fresh
+    if (cachedData && (now - lastFetchTime) / 1000 < CACHE_DURATION) {
+      return NextResponse.json({
+        ...cachedData,
+        cached: true,
+        lastUpdate: new Date(lastFetchTime).toISOString()
+      });
+    }
+
+    // Fetch USD rates as base
+    const usdData = await fetchBaseRates('USD');
+    
+    if (!usdData.conversion_rates) {
+      throw new Error('Invalid rate data received');
+    }
+
+    // Calculate all needed rates
+    const rates = {
+      'AOAEUR': {
+        rate: 1 / (usdData.conversion_rates.AOA * usdData.conversion_rates.EUR)
+      },
+      'AOAUSD': {
+        rate: 1 / usdData.conversion_rates.AOA
+      },
+      'EURUSD': {
+        rate: 1 / usdData.conversion_rates.EUR
+      },
+      'EURAOA': {
+        rate: usdData.conversion_rates.AOA / usdData.conversion_rates.EUR
+      },
+      'USDAOA': {
+        rate: usdData.conversion_rates.AOA
+      }
+    };
+
+    const responseData = {
+      result: 'success',
+      rates,
+      timestamp: now,
+      last_updated: new Date().toISOString(),
+      cached: false
+    };
+
+    // Update cache
+    cachedData = responseData;
+    lastFetchTime = now;
+
+    return NextResponse.json(responseData, {
+      headers: {
+        'Cache-Control': `public, max-age=${CACHE_DURATION}`,
+      }
     });
   } catch (error) {
     console.error('API Error:', error);
-    
     return NextResponse.json(
       { 
         error: 'Failed to fetch exchange rates',

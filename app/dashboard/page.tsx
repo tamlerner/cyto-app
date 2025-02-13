@@ -79,14 +79,11 @@ export default function DashboardPage() {
               <Button className="relative group">
                 <Plus className="mr-2 h-4 w-4" />
                 {t('Dashboard.NewPayment')}
-                <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  {t('ComingSoon')}
+                <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out">
+                  {t('Coming Soon! 🚀')}
                 </span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              <p>{t('ComingSoon')}</p>
-            </TooltipContent>
           </Tooltip>
         }
       />
