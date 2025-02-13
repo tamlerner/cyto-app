@@ -23,6 +23,15 @@ const NewsletterCarousel = () => {
   }, [api])
 
   const newsItems = [
+
+    {
+      title: "Corporate Updates",
+      description: "Our COO, Tamara Lerner, at the UNDP/Timbuktoo Africa Accelerator ",
+      link: "https://www.linkedin.com/feed/update/urn:li:activity:7292119731786969088",
+      imageUrl: "/placeholder6.png"
+    },
+
+    
     {
       title: "Corporate Updates",
       description: "CYTO at the Angola–France Business Forum in Paris",
