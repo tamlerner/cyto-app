@@ -156,6 +156,13 @@
     "RegisterError": "Erro ao cadastrar",
     "ContinueWithGoogle": "Continuar com Google",
     "SigningInWithGoogle": "Entrando com Google...",
+    "FirstName": "Nome",
+    "LastName":"Sobrenome",
+    "Country":"País",
+    "City":"Cidade",
+    "Phone": "Telefone",
+    "HaveAccount": "Jà tenho uma conta",
+    "ConfirmPassword":"Confirmar a Senha",
     "OrContinueWith": "Ou continuar com",
     "SignOutConfirm": "Tem certeza que deseja sair?"
   },

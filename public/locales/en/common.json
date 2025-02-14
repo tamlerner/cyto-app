@@ -145,6 +145,13 @@
     "SigningInWithGoogle": "Signing in with Google...",
     "OrContinueWith": "Or continue with",
     "SignOutConfirm": "Are you sure you want to sign out?",
+    "FirstName": "First Name",
+    "LastName":"Last Name",
+    "Country":"Country",
+    "City":"City",
+    "Phone": "Phone",
+    "ConfirmPassword":"Confirm Password",
+    "HaveAccount": "I already have an account",
     "GetStarted": "Get started with your free account today"
   },
 
@@ -184,6 +191,7 @@
     "EmailUpdateSuccess": "Email updated successfully",
     "EmailUpdateError": "Failed to update email",
     "ProfileSection": "Profile Information",
+    "ChangeAvatar": "Change Avatar",
     "Profile": {
       "Title": "Profile Information",
       "FirstName": "First Name",

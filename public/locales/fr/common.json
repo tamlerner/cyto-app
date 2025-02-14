@@ -156,6 +156,13 @@
     "RegisterError": "Erreur d'inscription",
     "ContinueWithGoogle": "Continuer avec Google",
     "SigningInWithGoogle": "Connexion avec Google...",
+    "FirstName": "Prénom",
+    "LastName":"Nom",
+    "Country":"Pays",
+    "City":"Ville",
+    "Phone": "Téléphone",
+    "ConfirmPassword":"Confirmer le Mot de Passe",
+    "HaveAccount": "J'ai déjà un compte",
     "OrContinueWith": "Ou continuer avec",
     "SignOutConfirm": "Êtes-vous sûr de vouloir vous déconnecter ?"
   },
