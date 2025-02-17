@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/page-header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDashboardMetrics } from './hooks/use-dashboard-metrics';
 import { useDashboardInvoiceMetrics_usd } from './hooks/use-dashboard-invoice-metrics-usd';
+import { useDashboardMetrics_aoa } from './hooks/use-dashboard-metrics-aoa';
 import { MetricCard } from './components/metric-card';
 import ExchangeRatesGrid from './components/exchange-rates/exchange-rates-grid';import { formatCurrency } from '@/lib/utils/currency';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,10 +16,14 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { BarChart, Bar, XAxis, YAxis, TooltipProps, CartesianGrid, LabelList, ResponsiveContainer, Legend } from 'recharts';
 import HorizontalStackChart from './components/HorizontalStackChart';
+import BarChartRevByMonth from './components/BarChartRevByMonth';
+import InvoiceSummaryTable from './components/InvoiceSummaryTable';
+
 
 export default function DashboardPage() {
   const { t } = useTranslation();
   const { metrics, loading, error } = useDashboardMetrics();
+  const { metrics_aoa} = useDashboardMetrics_aoa();
   const { metrics_invoices_usd } = useDashboardInvoiceMetrics_usd();
   const formatNumber = (num: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(num);
   const formatLabel = (value: number) => (value === 0 ? "" : formatNumber(value));
@@ -100,44 +105,44 @@ export default function DashboardPage() {
           <>
             <MetricCard
               title={t('Dashboard.TotalClients')}
-              value={metrics.totalClients.toString()}
+              value={metrics_aoa.thisMonthNewClients.toString()}
               icon={Users}
               href="/clients"
               trend={{
-                value: metrics.trends.clients.value,
-                positive: metrics.trends.clients.positive,
+                value: metrics_aoa.trends.clients.value,
+                positive: metrics_aoa.trends.clients.positive,
                 label: t('Dashboard.VsLastMonth')
               }}
             />
             <MetricCard
               title={t('Dashboard.TotalInvoices')}
-              value={metrics.totalInvoices.toString()}
+              value={metrics_aoa.thisMonthNewInvoices.toString()}
               icon={FileText}
               href="/invoices"
               trend={{
-                value: metrics.trends.invoices.value,
-                positive: metrics.trends.invoices.positive,
+                value: metrics_aoa.trends.invoices.value,
+                positive: metrics_aoa.trends.invoices.positive,
                 label: t('Dashboard.VsLastMonth')
               }}
             />
             <MetricCard
               title={t('Dashboard.MonthlyRevenue')}
-              value={formatCurrency(metrics.monthlyRevenue.usd, 'USD')}
+              value={formatCurrency(metrics_aoa.thisMonthRevenue, 'AOA')}
               icon={BarChart3}
               trend={{
-                value: metrics.trends.revenue.value,
-                positive: metrics.trends.revenue.positive,
+                value: metrics_aoa.trends.revenue.value,
+                positive: metrics_aoa.trends.revenue.positive,
                 label: t('Dashboard.VsLastMonth')
               }}
             />
             <MetricCard
               title={t('Dashboard.ActiveEmployees')}
-              value={metrics.employeeStats.active.toString()}
+              value={metrics_aoa.activeEmployees.toString()}
               icon={Users}
               href="/payroll/employees"
               trend={{
-                value: metrics.trends.employees.value,
-                positive: metrics.trends.employees.positive,
+                value: metrics_aoa.trends.employees.value,
+                positive: metrics_aoa.trends.employees.positive,
                 label: t('Dashboard.VsLastMonth')
               }}
             />
@@ -161,6 +166,7 @@ export default function DashboardPage() {
           )}
         </div>
 
+        <div className="grid gap-4 md:grid-cols-2">
         {/* Invoice Summary Card */}
         <Card className="bg-transparent shadow-none">
           <CardHeader>
@@ -168,80 +174,13 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
-              <table className="min-w-full table-auto border-collapse">
-                <thead>
-                  <tr className="border-b border-gray-300">
-                    <th className="py-2 px-4 text-left">Status</th>
-                    <th className="py-2 px-4 text-left">Number of Invoices</th>
-                    <th className="py-2 px-4 text-left">Amount Outstanding</th>
-                  </tr>
-                </thead>
-                <tbody>
-                {(["paid", "sent", "overdue"] as const).map((status) => (
-                  <tr key={status}>
-                    <td className="py-2 px-4 capitalize">{status}</td>
-                    <td className="py-2 px-4">
-                      {new Intl.NumberFormat("en-US").format(
-                        metrics_invoices_usd.InvoiceSummary[status].total_count
-                      )}
-                    </td>
-                    <td className="py-2 px-4">
-                      {new Intl.NumberFormat("en-US", {
-                        style: "currency",
-                        currency: "USD",
-                      }).format(metrics_invoices_usd.InvoiceSummary[status].total_amount)}
-                    </td>
-                  </tr>
-                ))}
-                </tbody>
-              </table>
+              <InvoiceSummaryTable />
             </div>
             {/* Horizontal Stacked Bar Chart */}
-            <div className="mt-8"> {/* Adding margin for spacing */}
+            <div className="mt-8">
               <HorizontalStackChart />
             </div>
-
-            
-
-
           </CardContent>
-        </Card>
-      </div>
-
-
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* Revenue Trends */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('Dashboard.RevenueTrends')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-            <ResponsiveContainer width="100%" height={400}>
-            <BarChart 
-              data={metrics_invoices_usd.LastSixMo_Revenues}
-              //margin={{ top: 20, right: 30, bottom: 20, left: 40 }}
-            >
-              <CartesianGrid stroke="#d3d3d3" vertical={false} strokeWidth={0.5}/>
-              
-              {/* Update XAxis to use Date_str */}
-              <XAxis dataKey="Date_str" />
-              
-              <YAxis tickFormatter={formatNumber} />
-              <Tooltip content={<CustomTooltip_FormatNumbers />} />
-              <Legend />
-              
-              {/* Update Bar dataKey to Revenue */}
-              <Bar dataKey="Paid_Invoices" fill="#4CBB17" radius={[5, 5, 0, 0]} name="Paid Amount" isAnimationActive={true}>
-                <LabelList dataKey="Paid_Invoices" position="top" fill="#4CBB17" formatter={formatLabel} />
-              </Bar>
-              <Bar dataKey="Sent_Overview_Invoices" fill="#576edb" radius={[5, 5, 0, 0]} name="Sent & Overdue Amount" isAnimationActive={true}>
-                <LabelList dataKey="Sent_Overview_Invoices" position="top" fill="#576edb" formatter={formatLabel} />
-              </Bar>
-            </BarChart>
-
-            </ResponsiveContainer>
-
-            </CardContent>
         </Card>
 
         {/* Employee Statistics */}
@@ -250,7 +189,7 @@ export default function DashboardPage() {
             <CardTitle>{t('Dashboard.EmployeeStats')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">
@@ -264,8 +203,6 @@ export default function DashboardPage() {
                   </span>
                   <span className="font-medium">{metrics.employeeStats.onLeave}</span>
                 </div>
-              </div>
-              <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">
                     {t('Dashboard.EmployeeStatus.Total')}
@@ -281,6 +218,24 @@ export default function DashboardPage() {
               </div>
             </div>
           </CardContent>
+        </Card>
+        </div>
+      </div>
+
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Revenue Trends */}
+        {/* Revenue Trends */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('Dashboard.RevenueTrends')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Horizontal Stacked Bar Chart */}
+              <div className="mt-8"> {/* Adding margin for spacing */}
+                <BarChartRevByMonth />
+              </div>
+            </CardContent>
         </Card>
 
         {/* Exchange Rates */}

@@ -1,18 +1,26 @@
 import React from 'react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LabelList } from 'recharts';import { useDashboardInvoiceMetrics_usd } from '../hooks/use-dashboard-invoice-metrics-usd';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LabelList } from 'recharts';
+import { useDashboardMetrics_aoa } from '../hooks/use-dashboard-metrics-aoa';
 
 const HorizontalStackChart: React.FC = () => {
-  const { metrics_invoices_usd } = useDashboardInvoiceMetrics_usd();
+  const { metrics_aoa } = useDashboardMetrics_aoa();
 
   const data = [{
     name: 'Invoices Summary', 
-    paid: metrics_invoices_usd.InvoiceSummary.paid.total_count || 0, 
-    sent: metrics_invoices_usd.InvoiceSummary.sent.total_count || 0,
-    overdue: metrics_invoices_usd.InvoiceSummary.overdue.total_count || 0
+    paid: metrics_aoa.InvoiceSummary.paid.total_count || 0, 
+    sent: metrics_aoa.InvoiceSummary.sent.total_count || 0,
+    overdue: metrics_aoa.InvoiceSummary.overdue.total_count || 0
   }];
 
+  const transformedData = [
+    { name: 'Paid', value: data[0].paid },
+    { name: 'Sent', value: data[0].sent },
+    { name: 'Overdue', value: data[0].overdue },
+  ];
+
+
   return (
-    <ResponsiveContainer width="100%" height={100}>
+    <ResponsiveContainer width="100%" height={70}>
       <BarChart data={data} layout="vertical">
         <XAxis 
           type="number" 
