@@ -88,10 +88,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left side - Login Form */}
-      <div className="w-[60%] bg-background p-8 flex flex-col justify-between relative overflow-hidden">
-        <AuthBackground expanded repeat />
+    <div className="h-full flex justify-center items-center relative">
+      {/* Center - Login Form */}
+      <div className="w-full h-full bg-background p-8 flex flex-col justify-between relative overflow-hidden">
+        <AuthBackground expanded repeat className="absolute top-0 left-0 w-full h-full" />
         
         <motion.div 
           className="space-y-8 w-full max-w-md mx-auto relative z-10"
@@ -197,7 +197,7 @@ export default function LoginPage() {
             <div className="text-center text-sm">
               {t('Auth.NoAccount')}{' '}
               <Link 
-                href="/register" 
+                href="https://www.appcyto.com/" 
                 className="text-primary hover:underline transition-colors"
                 tabIndex={loading ? -1 : 0}
               >
@@ -205,67 +205,6 @@ export default function LoginPage() {
               </Link>
             </div>
           </motion.div>
-        </motion.div>
-
-        <motion.div 
-          className="pt-8 relative z-10"
-          variants={fadeIn}
-          initial="initial"
-          animate="animate"
-        >
-          <NewsletterCarousel />
-        </motion.div>
-      </div>
-
-      {/* Right side - Marketing Content */}
-      <div className="w-[40%] bg-[#0A0F29] text-white p-8 flex flex-col justify-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-5" />
-        
-        <motion.div 
-          className="relative z-10 max-w-xl mx-auto space-y-8"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-        >
-          <h1 className="text-3xl font-light tracking-wider mb-4 text-white/90">
-            Top Startup to watch in Angola in 2024 - Techround UK
-          </h1>
-          
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
-              Thrive Locally, Scale Globally.
-            </h2>
-            <p className="text-lg text-white/70">
-              Your partner for local growth and global expansion. Automate treasury, invoicing, and payroll with our business platform.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-3 gap-6 mt-12">
-            <motion.div 
-              className="space-y-2"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <h3 className="text-2xl font-bold text-white/90">1000+</h3>
-              <p className="text-white/60">Active Users</p>
-            </motion.div>
-            <motion.div 
-              className="space-y-2"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <h3 className="text-2xl font-bold text-white/90">$10M+</h3>
-              <p className="text-white/60">Processed Monthly</p>
-            </motion.div>
-            <motion.div 
-              className="space-y-2"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <h3 className="text-2xl font-bold text-white/90">15+</h3>
-              <p className="text-white/60">Countries Served</p>
-            </motion.div>
-          </div>
         </motion.div>
       </div>
     </div>

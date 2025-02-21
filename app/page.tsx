@@ -9,6 +9,7 @@ import Head from 'next/head';
 export default function Home() {
   const router = useRouter();
   const { user, loading } = useAuth();
+  const siteTitle = 'CYTO Business Suite';
   
   useEffect(() => {
     if (!loading) {
@@ -19,7 +20,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>CYTO Business Suite</title>
+        <title>{siteTitle}</title>
       </Head>
       <AuthLoading />
     </>
