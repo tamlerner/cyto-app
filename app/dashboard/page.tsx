@@ -10,7 +10,7 @@ import { useDashboardMetrics } from './hooks/use-dashboard-metrics';
 import { useDashboardInvoiceMetrics_usd } from './hooks/use-dashboard-invoice-metrics-usd';
 import { useDashboardMetrics_aoa } from './hooks/use-dashboard-metrics-aoa';
 import { MetricCard } from './components/metric-card';
-import ExchangeRatesGrid from './components/exchange-rates/exchange-rates-grid';import { formatCurrency } from '@/lib/utils/currency';
+import { formatCurrency } from '@/lib/utils/currency';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -236,16 +236,6 @@ export default function DashboardPage() {
                 <BarChartRevByMonth />
               </div>
             </CardContent>
-        </Card>
-
-        {/* Exchange Rates */}
-        <Card className="col-span-2">
-          <CardHeader>
-            <CardTitle>{t('Dashboard.ExchangeRates')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ExchangeRatesGrid />
-          </CardContent>
         </Card>
       </div>
     </div>

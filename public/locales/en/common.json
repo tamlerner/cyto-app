@@ -18,6 +18,7 @@
     "Terminated": "Terminated"
   },
 
+  
   "ExchangeRates": {
     "Converter": "Converter",
     "From": "From",
@@ -169,7 +170,22 @@
   },
 
   "Upgrade": {
-    "ToPro": "Upgrade to Pro"
+    "ToPro": "Upgrade to Pro",
+    "SpecialOffer": "Special Offer",
+    "PerMonth": "/month",
+    "LimitedTime": "Limited time offer - Upgrade now and save 25%",
+    "MoneyBack": "30-day money-back guarantee",
+    "UpgradeNow": "Upgrade Now",
+    "Features": {
+      "UnlimitedInvoices": "Unlimited Invoices",
+      "MultiCurrency": "Multi-Currency Support",
+      "AdvancedAnalytics": "Advanced Analytics & Reports",
+      "PrioritySupport": "Priority Customer Support",
+      "CustomBranding": "Custom Branding Options",
+      "ApiAccess": "API Access",
+      "TeamCollaboration": "Team Collaboration Tools",
+      "AutomatedWorkflows": "Automated Workflows"
+    }
   },
 
   "Settings": {

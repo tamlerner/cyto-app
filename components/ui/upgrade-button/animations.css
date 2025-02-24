@@ -1,14 +1,51 @@
-@keyframes shine {
-  0% {
+.dialog-content {
+  animation: dialogIn 0.2s ease-out;
+}
+
+@keyframes dialogIn {
+  from {
     opacity: 0;
-    transform: translateX(-100%);
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes subtle-bounce {
+  0%, 100% {
+    transform: translateY(0);
   }
   50% {
-    opacity: 0.3;
-    transform: translateX(0);
+    transform: translateY(-4px);
   }
-  100% {
-    opacity: 0;
-    transform: translateX(100%);
+}
+
+.animate-subtle-bounce {
+  animation: subtle-bounce 2s ease-in-out infinite;
+}
+
+.highlight-price {
+  position: relative;
+  padding: 0.5rem;
+}
+
+.highlight-price::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 0.5rem;
+  background: linear-gradient(to right, var(--primary) 1%, transparent 50%);
+  opacity: 0.1;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.2;
   }
 }

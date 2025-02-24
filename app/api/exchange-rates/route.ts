@@ -3,9 +3,9 @@ import { NextResponse } from 'next/server';
 // Configuration
 const API_KEY = '543b55e60c9f7e08e6a86f4d';
 const BASE_URL = `https://v6.exchangerate-api.com/v6/${API_KEY}`;
-const CACHE_DURATION = 300; // Cache duration in seconds (5 minutes)
-const RATE_LIMIT_WINDOW = 3600; // 1 hour in seconds
-const MAX_REQUESTS_PER_WINDOW = 1500; // API limit per hour
+const CACHE_DURATION = 90000; // Cache duration in seconds (5 minutes)
+const RATE_LIMIT_WINDOW = 36000; // 1 hour in seconds
+const MAX_REQUESTS_PER_WINDOW = 15000; // API limit per hour
 
 // Rate limiting
 let requestCount = 0;
@@ -18,7 +18,7 @@ let lastFetchTime: number = 0;
 async function fetchBaseRates(currency: string): Promise<any> {
   // Check rate limit
   const now = Date.now();
-  if (now - windowStart > RATE_LIMIT_WINDOW * 1000) {
+  if (now - windowStart > RATE_LIMIT_WINDOW * 100000) {
     // Reset window
     requestCount = 0;
     windowStart = now;
@@ -54,7 +54,7 @@ export async function GET() {
     const now = Date.now();
     
     // Return cached data if it's still fresh
-    if (cachedData && (now - lastFetchTime) / 1000 < CACHE_DURATION) {
+    if (cachedData && (now - lastFetchTime) / 100000 < CACHE_DURATION) {
       return NextResponse.json({
         ...cachedData,
         cached: true,
