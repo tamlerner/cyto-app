@@ -36,11 +36,10 @@ export default async function handler(
   }
 
   console.log('API endpoint hit with method:', req.method);
+  console.log('Raw request body:', JSON.stringify(req.body, null, 2));
 
   try {
     // Parse the form data from the request body
-    console.log('Raw request body:', req.body);
-    
     const { first_name, last_name, email, company_name, company_website, team_size } = req.body as FormData;
     
     console.log('Parsed form data:', { first_name, last_name, email, company_name, company_website, team_size });
@@ -57,31 +56,49 @@ export default async function handler(
     
     const supabase = createClient(supabaseUrl, supabaseKey);
     
-    // Send magic link with form data in the metadata
-    const { data, error } = await supabase.auth.signInWithOtp({
+    // Create a random password for the user
+    const password = Math.random().toString(36).slice(-10) + Math.random().toString(36).toUpperCase().slice(-2);
+    
+    // Sign up a new user with email/password
+    console.log('Signing up new user with email:', email);
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email: email,
+      password: password,
       options: {
-        emailRedirectTo: 'https://web.appcyto.com/auth/callback',
         data: {
-          // Include form data in the metadata
+          // Add user metadata
           first_name,
           last_name,
           company_name,
           company_website,
           team_size,
-          source: 'cyto_framer_form'
+          source: 'framer_form'
         }
       }
     });
     
-    if (error) {
-      console.error('Error sending magic link:', error);
-      return res.status(400).json({ error: error.message });
+    if (signUpError) {
+      console.error('Sign up error:', signUpError);
+      return res.status(400).json({ error: signUpError.message });
     }
     
+    if (!signUpData?.user?.id) {
+      return res.status(400).json({ error: 'Failed to create user' });
+    }
+    
+    console.log('User created with ID:', signUpData.user.id);
+    
+    // No need to update the profile as the trigger will create it
+    // Your RLS trigger should already create a profile with first_name and last_name
+    // from the user metadata
+    
+    // Send a confirmation email - using the built-in email that Supabase sends on signup
+    console.log('Signup confirmation email sent automatically by Supabase');
+    
+    // Respond with success
     return res.status(200).json({ 
       success: true, 
-      message: 'Magic link sent successfully. Please check your email to complete registration.'
+      message: 'Registration successful. Please check your email for verification.'
     });
     
   } catch (error: any) {
