@@ -13,7 +13,6 @@ type FormData = {
 type ResponseData = {
   success?: boolean
   message?: string
-  user_id?: string
   error?: string
 }
 
@@ -21,62 +20,72 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // Handle OPTIONS request (preflight)
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   // Only allow POST requests
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
+    return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  console.log('API endpoint hit with method:', req.method);
 
   try {
     // Parse the form data from the request body
-    const { first_name, last_name, email, company_name, company_website, team_size } = req.body as FormData
+    console.log('Raw request body:', req.body);
     
-    // Create Supabase client using your provided credentials
-    const supabaseUrl = 'https://ovjhjskagglsdkmlwnjx.supabase.co'
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92amhqc2thZ2dsc2RrbWx3bmp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUwMzA3NTYsImV4cCI6MjA1MDYwNjc1Nn0.dOmo-s115cvaRz3oabspaAoOx0PvA8LCshMSd9_8b0c'
+    const { first_name, last_name, email, company_name, company_website, team_size } = req.body as FormData;
     
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    console.log('Parsed form data:', { first_name, last_name, email, company_name, company_website, team_size });
     
-    // Create a user with the provided email
-    const password = Math.random().toString(36).slice(-10) + Math.random().toString(36).toUpperCase().slice(-2)
+    // Validate required fields
+    if (!email) {
+      console.log('Validation failed: Missing email');
+      return res.status(400).json({ error: 'Email is required' });
+    }
     
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    // Create Supabase client
+    const supabaseUrl = 'https://ovjhjskagglsdkmlwnjx.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92amhqc2thZ2dsc2RrbWx3bmp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUwMzA3NTYsImV4cCI6MjA1MDYwNjc1Nn0.dOmo-s115cvaRz3oabspaAoOx0PvA8LCshMSd9_8b0c';
+    
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    // Send magic link with form data in the metadata
+    const { data, error } = await supabase.auth.signInWithOtp({
       email: email,
-      password: password,
-    })
+      options: {
+        emailRedirectTo: 'https://web.appcyto.com/auth/callback',
+        data: {
+          // Include form data in the metadata
+          first_name,
+          last_name,
+          company_name,
+          company_website,
+          team_size,
+          source: 'cyto_framer_form'
+        }
+      }
+    });
     
-    if (authError) {
-      console.error('Auth error:', authError)
-      return res.status(400).json({ error: authError.message })
-    }
-    
-    if (!authData?.user?.id) {
-      return res.status(400).json({ error: 'Failed to create user' })
-    }
-    
-    // The profile is automatically created by your trigger
-    // Now update it with the form data
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({
-        first_name: first_name,
-        last_name: last_name,
-        // Add any additional fields you want to update
-      })
-      .eq('user_id', authData.user.id)
-    
-    if (updateError) {
-      console.error('Update error:', updateError)
-      return res.status(400).json({ error: updateError.message })
+    if (error) {
+      console.error('Error sending magic link:', error);
+      return res.status(400).json({ error: error.message });
     }
     
     return res.status(200).json({ 
       success: true, 
-      message: 'Registration successful!',
-      user_id: authData.user.id 
-    })
+      message: 'Magic link sent successfully. Please check your email to complete registration.'
+    });
     
-  } catch (error) {
-    console.error('Unexpected error:', error)
-    return res.status(500).json({ error: 'Internal server error' })
+  } catch (error: any) {
+    console.error('Unexpected error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
