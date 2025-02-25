@@ -225,7 +225,7 @@ export default function LoginPage() {
             <div className="text-center text-sm">
               {t('Auth.NoAccount')}{' '}
               <Link 
-                href="https://www.appcyto.com/" 
+                href="/register" 
                 className="text-primary hover:underline transition-colors"
                 tabIndex={loading ? -1 : 0}
               >

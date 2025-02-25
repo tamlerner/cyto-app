@@ -1,7 +1,9 @@
 'use client';
 
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { User } from '@supabase/supabase-js';
 
+// Google Sign-In
 export async function handleGoogleSignIn(redirectTo: string) {
   try {
     const supabase = createClientComponentClient();
@@ -16,54 +18,106 @@ export async function handleGoogleSignIn(redirectTo: string) {
       }
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Google Sign-In Error:', error);
+      return false;
+    }
     return true;
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Google Sign-In Unexpected Error:', error);
     return false;
   }
 }
 
+// Email Sign-Up
 export async function signUpWithEmail(email: string, password: string) {
   const supabase = createClientComponentClient();
   
   try {
+    // Input validation
+    if (!email) {
+      console.error('[SIGNUP] Email is required');
+      return { 
+        success: false, 
+        error: 'Email is required' 
+      };
+    }
+
+    if (!password || password.length < 6) {
+      console.error('[SIGNUP] Password is too short');
+      return { 
+        success: false, 
+        error: 'Password must be at least 6 characters' 
+      };
+    }
+
+    // Signup attempt
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/auth/callback`
       }
     });
 
-    if (error) throw error;
-
-    // Only try to create verification record if we have a user
-    if (data?.user?.id) {
-      // Wait briefly for auth.users to be updated
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      try {
-        await supabase
-          .from('user_verification')
-          .insert({
-            id: data.user.id,
-            email_verified: false,
-            verification_status: 'pending'
-          });
-      } catch (verificationError) {
-        // Log but don't throw - user is still created
-        console.log('Verification record creation deferred:', verificationError);
-      }
+    // Error handling
+    if (error) {
+      console.error('[SIGNUP ERROR]', error);
+      return { 
+        success: false, 
+        error: error.message 
+      };
     }
 
-    return { success: true, user: data.user };
-  } catch (error: any) {
-    console.error('Error signing up:', error);
-    return { success: false, error: error.message };
+    // Verify user creation
+    if (!data.user) {
+      console.error('[SIGNUP] No user object created');
+      return { 
+        success: false, 
+        error: 'User creation failed' 
+      };
+    }
+
+    // Profile creation
+    try {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: data.user.id,  // Use auth user's ID as profile ID
+          user_id: data.user.id,  // Explicitly set user_id
+          email: email,
+          avatar: '👤'
+        });
+
+      if (profileError) {
+        console.error('[PROFILE INSERT ERROR]', profileError);
+        return {
+          success: false,
+          error: profileError.message
+        };
+      }
+    } catch (profileInsertError) {
+      console.error('[PROFILE INSERT CATCH ERROR]', profileInsertError);
+      return {
+        success: false,
+        error: 'Failed to create profile'
+      };
+    }
+
+    return { 
+      success: true, 
+      user: data.user 
+    };
+  } catch (unexpectedError: any) {
+    console.error('[UNEXPECTED SIGNUP ERROR]', unexpectedError);
+    return { 
+      success: false, 
+      error: unexpectedError.message 
+    };
   }
 }
 
+// Send Magic Link
 export async function sendMagicLink(email: string) {
   const supabase = createClientComponentClient();
   
@@ -75,61 +129,106 @@ export async function sendMagicLink(email: string) {
       },
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Magic Link Error:', error);
+      return { 
+        success: false, 
+        error: error.message 
+      };
+    }
+
     return { success: true };
   } catch (error: any) {
-    console.error('Error sending magic link:', error);
-    return { success: false, error: error.message };
+    console.error('Magic Link Unexpected Error:', error);
+    return { 
+      success: false, 
+      error: error.message || 'Failed to send magic link' 
+    };
   }
 }
 
+// Resend Magic Link
 export async function resendMagicLink(email: string) {
   return sendMagicLink(email);
 }
 
-export const updateUserProfile = async (userId: string, profileData: {
-  first_name: string;
-  last_name: string;
-  phone_number: string;
-  country: string;
-  city: string;
-}) => {
-  try {
-    const supabase = createClientComponentClient();
-    
-    const { error } = await supabase
-      .from('profiles')
-      .upsert({
-        user_id: userId,
-        first_name: profileData.first_name,
-        last_name: profileData.last_name,
-        phone_number: profileData.phone_number,
-        country: profileData.country,
-        city: profileData.city,
-        updated_at: new Date().toISOString()
-      });
+// Update User Profile
+export async function updateUserProfile(userId: string, profile: {
+  first_name?: string;
+  last_name?: string;
+  phone_number?: string;
+  country?: string;
+  city?: string;
+}) {
+  const supabase = createClientComponentClient();
 
-    if (error) throw error;
-    
+  try {
+    // Update auth.users metadata if needed
+    const { error: updateAuthError } = await supabase.auth.updateUser({
+      data: profile
+    });
+
+    if (updateAuthError) {
+      console.error('Auth Update Error:', updateAuthError);
+      throw updateAuthError;
+    }
+
+    // Update profiles table
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({
+        first_name: profile.first_name || '',
+        last_name: profile.last_name || '',
+        phone_number: profile.phone_number || '',
+        country: profile.country || '',
+        city: profile.city || ''
+      })
+      .eq('user_id', userId);
+
+    if (profileError) {
+      console.error('Profile Update Error:', profileError);
+      throw profileError;
+    }
+
     return { success: true };
   } catch (error: any) {
-    return { success: false, error: error.message };
+    console.error('Profile Update Catch Error:', error);
+    return { 
+      success: false, 
+      error: error.message || 'Failed to update profile' 
+    };
   }
 }
 
+// Get Current User
 export async function getCurrentUser() {
   const supabase = createClientComponentClient();
   
   try {
     const { data: { user }, error } = await supabase.auth.getUser();
-    if (error) throw error;
-    return { success: true, user };
+    
+    if (error) {
+      console.error('Get User Error:', error);
+      return { 
+        success: false, 
+        error: error.message 
+      };
+    }
+
+    return { 
+      success: true, 
+      user 
+    };
   } catch (error: any) {
-    console.error('Error getting user:', error);
-    return { success: false, error: error.message };
+    console.error('Get User Unexpected Error:', error);
+    return { 
+      success: false, 
+      error: error.message || 'Failed to get current user' 
+    };
   }
 }
 
+// Check 2FA Status
 export async function check2FAStatus(userId: string) {
   const supabase = createClientComponentClient();
   
@@ -140,14 +239,28 @@ export async function check2FAStatus(userId: string) {
       .eq('id', userId)
       .single();
 
-    if (error) throw error;
-    return { success: true, enabled: data?.two_factor_enabled };
+    if (error) {
+      console.error('2FA Status Check Error:', error);
+      return { 
+        success: false, 
+        error: error.message 
+      };
+    }
+
+    return { 
+      success: true, 
+      enabled: data?.two_factor_enabled 
+    };
   } catch (error: any) {
-    console.error('Error checking 2FA status:', error);
-    return { success: false, error: error.message };
+    console.error('2FA Status Check Unexpected Error:', error);
+    return { 
+      success: false, 
+      error: error.message || 'Failed to check 2FA status' 
+    };
   }
 }
 
+// Enable 2FA
 export async function enable2FA(userId: string) {
   const supabase = createClientComponentClient();
   
@@ -157,14 +270,25 @@ export async function enable2FA(userId: string) {
       .update({ two_factor_enabled: true })
       .eq('id', userId);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Enable 2FA Error:', error);
+      return { 
+        success: false, 
+        error: error.message 
+      };
+    }
+
     return { success: true };
   } catch (error: any) {
-    console.error('Error enabling 2FA:', error);
-    return { success: false, error: error.message };
+    console.error('Enable 2FA Unexpected Error:', error);
+    return { 
+      success: false, 
+      error: error.message || 'Failed to enable 2FA' 
+    };
   }
 }
 
+// Disable 2FA
 export async function disable2FA(userId: string) {
   const supabase = createClientComponentClient();
   
@@ -174,14 +298,25 @@ export async function disable2FA(userId: string) {
       .update({ two_factor_enabled: false })
       .eq('id', userId);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Disable 2FA Error:', error);
+      return { 
+        success: false, 
+        error: error.message 
+      };
+    }
+
     return { success: true };
   } catch (error: any) {
-    console.error('Error disabling 2FA:', error);
-    return { success: false, error: error.message };
+    console.error('Disable 2FA Unexpected Error:', error);
+    return { 
+      success: false, 
+      error: error.message || 'Failed to disable 2FA' 
+    };
   }
 }
 
+// Check User 2FA
 export async function checkUserHas2FA(userId: string) {
   const supabase = createClientComponentClient();
   
@@ -192,65 +327,82 @@ export async function checkUserHas2FA(userId: string) {
       .eq('id', userId)
       .single();
 
-    if (error) throw error;
-    return { success: true, has2FA: data?.two_factor_enabled };
+    if (error) {
+      console.error('Check User 2FA Error:', error);
+      return { 
+        success: false, 
+        error: error.message 
+      };
+    }
+
+    return { 
+      success: true, 
+      has2FA: data?.two_factor_enabled 
+    };
   } catch (error: any) {
-    console.error('Error checking 2FA status:', error);
-    return { success: false, error: error.message };
+    console.error('Check User 2FA Unexpected Error:', error);
+    return { 
+      success: false, 
+      error: error.message || 'Failed to check user 2FA status' 
+    };
   }
 }
 
-// Updated 2FA functions
+// 2FA Challenge
 export async function challenge2FA() {
   const supabase = createClientComponentClient();
   
   try {
-    // Get the factor ID from localStorage (stored during enrollment)
-    const factorId = localStorage.getItem('mfa_factor_id');
-    
-    if (!factorId) {
+    const { data, error } = await supabase.auth.mfa.challenge({
+      factorId: 'totp'
+    });
+
+    if (error) {
+      console.error('2FA Challenge Error:', error);
       return { 
         success: false, 
-        error: "No MFA setup found. Please complete 2FA setup first." 
+        error: error.message 
       };
     }
 
-    const { data, error } = await supabase.auth.mfa.challenge({
-      factorId: factorId
-    });
-
-    if (error) throw error;
-    return { success: true, challengeId: data.id };
+    return { 
+      success: true, 
+      challengeId: data.id 
+    };
   } catch (error: any) {
-    console.error('Error initiating 2FA challenge:', error);
-    return { success: false, error: error.message };
+    console.error('2FA Challenge Unexpected Error:', error);
+    return { 
+      success: false, 
+      error: error.message || 'Failed to initiate 2FA challenge' 
+    };
   }
 }
 
+// Verify 2FA Login
 export async function verify2FALogin(challengeId: string, code: string) {
   const supabase = createClientComponentClient();
   
   try {
-    // Get the factor ID from localStorage (stored during enrollment)
-    const factorId = localStorage.getItem('mfa_factor_id');
-    
-    if (!factorId) {
-      return { 
-        success: false, 
-        error: "No MFA setup found. Please complete 2FA setup first." 
-      };
-    }
-
     const { data, error } = await supabase.auth.mfa.verify({
-      factorId: factorId,
+      factorId: 'totp',
       challengeId,
       code
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('2FA Verify Error:', error);
+      return { 
+        success: false, 
+        error: error.message 
+      };
+    }
+
     return { success: true };
   } catch (error: any) {
-    console.error('Error verifying 2FA:', error);
-    return { success: false, error: error.message };
+    console.error('2FA Verify Unexpected Error:', error);
+    return { 
+      success: false, 
+      error: error.message || 'Failed to verify 2FA' 
+    };
   }
 }
