@@ -200,12 +200,23 @@ export async function checkUserHas2FA(userId: string) {
   }
 }
 
+// Updated 2FA functions
 export async function challenge2FA() {
   const supabase = createClientComponentClient();
   
   try {
+    // Get the factor ID from localStorage (stored during enrollment)
+    const factorId = localStorage.getItem('mfa_factor_id');
+    
+    if (!factorId) {
+      return { 
+        success: false, 
+        error: "No MFA setup found. Please complete 2FA setup first." 
+      };
+    }
+
     const { data, error } = await supabase.auth.mfa.challenge({
-      factorId: 'totp'
+      factorId: factorId
     });
 
     if (error) throw error;
@@ -220,8 +231,18 @@ export async function verify2FALogin(challengeId: string, code: string) {
   const supabase = createClientComponentClient();
   
   try {
+    // Get the factor ID from localStorage (stored during enrollment)
+    const factorId = localStorage.getItem('mfa_factor_id');
+    
+    if (!factorId) {
+      return { 
+        success: false, 
+        error: "No MFA setup found. Please complete 2FA setup first." 
+      };
+    }
+
     const { data, error } = await supabase.auth.mfa.verify({
-      factorId: 'totp',
+      factorId: factorId,
       challengeId,
       code
     });

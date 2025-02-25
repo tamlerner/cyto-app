@@ -7,20 +7,29 @@ export async function generateTOTP(userId: string) {
   const supabase = createClientComponentClient();
   
   try {
+    // First, enroll the user for MFA
     const { data, error } = await supabase.auth.mfa.enroll({
       factorType: 'totp'
     });
 
     if (error) throw error;
 
-    // Generate QR code
+    // Store the factorId for later use
+    // This is the UUID we need to reference in later operations
+    const factorId = data.id;
+    
+    // Store the factorId in localStorage for use in verification
+    localStorage.setItem('mfa_factor_id', factorId);
+
+    // Generate QR code from the URI
     const qrCodeUrl = await QRCode.toDataURL(data.totp.qr_code);
 
     return { 
       success: true, 
       qrCode: qrCodeUrl,
       secret: data.totp.secret,
-      uri: data.totp.uri
+      uri: data.totp.uri,
+      factorId: factorId
     };
   } catch (error: any) {
     console.error('Error generating TOTP:', error);
@@ -32,14 +41,23 @@ export async function verifyTOTP(code: string) {
   const supabase = createClientComponentClient();
   
   try {
+    // Get the factorId from localStorage
+    const factorId = localStorage.getItem('mfa_factor_id');
+    
+    if (!factorId) {
+      throw new Error('MFA setup incomplete. Please restart the process.');
+    }
+
+    // Create a challenge using the stored factorId
     const { data, error } = await supabase.auth.mfa.challenge({
-      factorId: 'totp'
+      factorId: factorId
     });
 
     if (error) throw error;
 
+    // Verify the code against the challenge
     const { data: verifyData, error: verifyError } = await supabase.auth.mfa.verify({
-      factorId: 'totp',
+      factorId: factorId,
       challengeId: data.id,
       code
     });

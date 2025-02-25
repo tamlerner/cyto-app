@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Shield, Loader2 } from 'lucide-react';
@@ -17,23 +17,40 @@ export default function Verify2FAPage() {
   const [loading, setLoading] = useState(false);
   const [code, setCode] = useState('');
   const [challengeId, setChallengeId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Initiate 2FA challenge when page loads
-  React.useEffect(() => {
+  useEffect(() => {
     initiate2FAChallenge();
   }, []);
 
   const initiate2FAChallenge = async () => {
-    const result = await challenge2FA();
-    if (result.success) {
-      setChallengeId(result.challengeId);
-    } else {
+    setLoading(true);
+    try {
+      const result = await challenge2FA();
+      if (result.success) {
+        setChallengeId(result.challengeId);
+        setError(null);
+      } else {
+        setError(result.error || "Failed to initiate 2FA verification");
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.error || "Failed to initiate 2FA verification"
+        });
+        // Don't redirect immediately, give user a chance to see the error
+        setTimeout(() => router.push('/login'), 3000);
+      }
+    } catch (err) {
+      console.error('Error in 2FA challenge:', err);
+      setError("An unexpected error occurred");
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to initiate 2FA verification"
+        description: "An unexpected error occurred"
       });
-      router.push('/login');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -44,7 +61,9 @@ export default function Verify2FAPage() {
     try {
       const result = await verify2FALogin(challengeId, code);
       
-      if (!result.success) throw new Error('Invalid verification code');
+      if (!result.success) {
+        throw new Error(result.error || 'Invalid verification code');
+      }
 
       toast({
         title: "Verification successful",
@@ -80,39 +99,55 @@ export default function Verify2FAPage() {
 
         <Card>
           <CardContent className="space-y-6 pt-6">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-8 h-8 text-primary" />
+            {error ? (
+              <div className="text-center">
+                <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Shield className="w-8 h-8 text-destructive" />
+                </div>
+                <p className="text-destructive font-medium mb-2">
+                  {error}
+                </p>
+                <p className="text-muted-foreground text-sm">
+                  Redirecting to login...
+                </p>
               </div>
-              <p className="text-muted-foreground mt-2">
-                Enter the verification code from your authenticator app
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <Input
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder="000000"
-                className="text-center text-lg tracking-wider font-mono h-12"
-                maxLength={6}
-              />
-
-              <Button
-                onClick={handleVerify}
-                className="w-full h-11"
-                disabled={loading || code.length !== 6}
-              >
-                {loading ? (
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Verifying...
+            ) : (
+              <>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Shield className="w-8 h-8 text-primary" />
                   </div>
-                ) : (
-                  'Verify'
-                )}
-              </Button>
-            </div>
+                  <p className="text-muted-foreground mt-2">
+                    Enter the verification code from your authenticator app
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <Input
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    placeholder="000000"
+                    className="text-center text-lg tracking-wider font-mono h-12"
+                    maxLength={6}
+                  />
+
+                  <Button
+                    onClick={handleVerify}
+                    className="w-full h-11"
+                    disabled={loading || !challengeId || code.length !== 6}
+                  >
+                    {loading ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Verifying...
+                      </div>
+                    ) : (
+                      'Verify'
+                    )}
+                  </Button>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </motion.div>
