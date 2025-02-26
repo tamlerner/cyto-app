@@ -97,43 +97,16 @@ export default function RegisterPage() {
         });
         return;
       }
-  
+    
       setLoading(true);
       
       // First sign up the user
       const signUpResult = await signUpWithEmail(formData.email, formData.password);
       if (!signUpResult.success) throw new Error(signUpResult.error);
-  
-      // Then update their profile
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
-  
-      const profileResult = await updateUserProfile(user?.id, {
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        phone_number: formData.phoneNumber,
-        country: formData.country,
-        city: formData.city
-      });
-  
-      if (!profileResult.success) throw new Error(profileResult.error);
-  
-      // Finally send the magic link
-      const magicLinkResult = await sendMagicLink(formData.email);
-      if (!magicLinkResult.success) throw new Error(magicLinkResult.error);
-  
-      setStep(2);
-      toast({
-        title: "Verification email sent",
-        description: "Please check your inbox for the verification link",
-        duration: 5000
-      });
+      
+      // ...rest of the function
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message
-      });
+      // ...error handling
     } finally {
       setLoading(false);
     }
@@ -169,8 +142,9 @@ export default function RegisterPage() {
       
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError) throw userError;
+      if (!user?.id) throw new Error("User ID not found");
 
-      const result = await updateUserProfile(user?.id, {
+      const result = await updateUserProfile(user.id, {
         first_name: formData.firstName,
         last_name: formData.lastName,
         phone_number: formData.phoneNumber

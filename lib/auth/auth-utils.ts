@@ -29,205 +29,6 @@ export async function handleGoogleSignIn(redirectTo: string) {
   }
 }
 
-// Email Sign-Up
-export async function signUpWithEmail(email: string, password: string) {
-  const supabase = createClientComponentClient();
-  
-  try {
-    // Input validation
-    if (!email) {
-      console.error('[SIGNUP] Email is required');
-      return { 
-        success: false, 
-        error: 'Email is required' 
-      };
-    }
-
-    if (!password || password.length < 6) {
-      console.error('[SIGNUP] Password is too short');
-      return { 
-        success: false, 
-        error: 'Password must be at least 6 characters' 
-      };
-    }
-
-    // Signup attempt
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`
-      }
-    });
-
-    // Error handling
-    if (error) {
-      console.error('[SIGNUP ERROR]', error);
-      return { 
-        success: false, 
-        error: error.message 
-      };
-    }
-
-    // Verify user creation
-    if (!data.user) {
-      console.error('[SIGNUP] No user object created');
-      return { 
-        success: false, 
-        error: 'User creation failed' 
-      };
-    }
-
-    // Profile creation
-    try {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: data.user.id,  // Use auth user's ID as profile ID
-          user_id: data.user.id,  // Explicitly set user_id
-          email: email,
-          avatar: '👤'
-        });
-
-      if (profileError) {
-        console.error('[PROFILE INSERT ERROR]', profileError);
-        return {
-          success: false,
-          error: profileError.message
-        };
-      }
-    } catch (profileInsertError) {
-      console.error('[PROFILE INSERT CATCH ERROR]', profileInsertError);
-      return {
-        success: false,
-        error: 'Failed to create profile'
-      };
-    }
-
-    return { 
-      success: true, 
-      user: data.user 
-    };
-  } catch (unexpectedError: any) {
-    console.error('[UNEXPECTED SIGNUP ERROR]', unexpectedError);
-    return { 
-      success: false, 
-      error: unexpectedError.message 
-    };
-  }
-}
-
-// Send Magic Link
-export async function sendMagicLink(email: string) {
-  const supabase = createClientComponentClient();
-  
-  try {
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (error) {
-      console.error('Magic Link Error:', error);
-      return { 
-        success: false, 
-        error: error.message 
-      };
-    }
-
-    return { success: true };
-  } catch (error: any) {
-    console.error('Magic Link Unexpected Error:', error);
-    return { 
-      success: false, 
-      error: error.message || 'Failed to send magic link' 
-    };
-  }
-}
-
-// Resend Magic Link
-export async function resendMagicLink(email: string) {
-  return sendMagicLink(email);
-}
-
-// Update User Profile
-export async function updateUserProfile(userId: string, profile: {
-  first_name?: string;
-  last_name?: string;
-  phone_number?: string;
-  country?: string;
-  city?: string;
-}) {
-  const supabase = createClientComponentClient();
-
-  try {
-    // Update auth.users metadata if needed
-    const { error: updateAuthError } = await supabase.auth.updateUser({
-      data: profile
-    });
-
-    if (updateAuthError) {
-      console.error('Auth Update Error:', updateAuthError);
-      throw updateAuthError;
-    }
-
-    // Update profiles table
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({
-        first_name: profile.first_name || '',
-        last_name: profile.last_name || '',
-        phone_number: profile.phone_number || '',
-        country: profile.country || '',
-        city: profile.city || ''
-      })
-      .eq('user_id', userId);
-
-    if (profileError) {
-      console.error('Profile Update Error:', profileError);
-      throw profileError;
-    }
-
-    return { success: true };
-  } catch (error: any) {
-    console.error('Profile Update Catch Error:', error);
-    return { 
-      success: false, 
-      error: error.message || 'Failed to update profile' 
-    };
-  }
-}
-
-// Get Current User
-export async function getCurrentUser() {
-  const supabase = createClientComponentClient();
-  
-  try {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    
-    if (error) {
-      console.error('Get User Error:', error);
-      return { 
-        success: false, 
-        error: error.message 
-      };
-    }
-
-    return { 
-      success: true, 
-      user 
-    };
-  } catch (error: any) {
-    console.error('Get User Unexpected Error:', error);
-    return { 
-      success: false, 
-      error: error.message || 'Failed to get current user' 
-    };
-  }
-}
-
 // Check 2FA Status
 export async function check2FAStatus(userId: string) {
   const supabase = createClientComponentClient();
@@ -240,7 +41,7 @@ export async function check2FAStatus(userId: string) {
       .single();
 
     if (error) {
-      console.error('2FA Status Check Error:', error);
+      console.error('[2FA STATUS CHECK ERROR]:', error);
       return { 
         success: false, 
         error: error.message 
@@ -252,7 +53,7 @@ export async function check2FAStatus(userId: string) {
       enabled: data?.two_factor_enabled 
     };
   } catch (error: any) {
-    console.error('2FA Status Check Unexpected Error:', error);
+    console.error('[2FA STATUS CHECK UNEXPECTED ERROR]:', error);
     return { 
       success: false, 
       error: error.message || 'Failed to check 2FA status' 
@@ -271,7 +72,7 @@ export async function enable2FA(userId: string) {
       .eq('id', userId);
 
     if (error) {
-      console.error('Enable 2FA Error:', error);
+      console.error('[ENABLE 2FA ERROR]:', error);
       return { 
         success: false, 
         error: error.message 
@@ -280,7 +81,7 @@ export async function enable2FA(userId: string) {
 
     return { success: true };
   } catch (error: any) {
-    console.error('Enable 2FA Unexpected Error:', error);
+    console.error('[ENABLE 2FA UNEXPECTED ERROR]:', error);
     return { 
       success: false, 
       error: error.message || 'Failed to enable 2FA' 
@@ -299,7 +100,7 @@ export async function disable2FA(userId: string) {
       .eq('id', userId);
 
     if (error) {
-      console.error('Disable 2FA Error:', error);
+      console.error('[DISABLE 2FA ERROR]:', error);
       return { 
         success: false, 
         error: error.message 
@@ -308,7 +109,7 @@ export async function disable2FA(userId: string) {
 
     return { success: true };
   } catch (error: any) {
-    console.error('Disable 2FA Unexpected Error:', error);
+    console.error('[DISABLE 2FA UNEXPECTED ERROR]:', error);
     return { 
       success: false, 
       error: error.message || 'Failed to disable 2FA' 
@@ -328,7 +129,7 @@ export async function checkUserHas2FA(userId: string) {
       .single();
 
     if (error) {
-      console.error('Check User 2FA Error:', error);
+      console.error('[CHECK USER 2FA ERROR]:', error);
       return { 
         success: false, 
         error: error.message 
@@ -340,7 +141,7 @@ export async function checkUserHas2FA(userId: string) {
       has2FA: data?.two_factor_enabled 
     };
   } catch (error: any) {
-    console.error('Check User 2FA Unexpected Error:', error);
+    console.error('[CHECK USER 2FA UNEXPECTED ERROR]:', error);
     return { 
       success: false, 
       error: error.message || 'Failed to check user 2FA status' 
@@ -358,7 +159,7 @@ export async function challenge2FA() {
     });
 
     if (error) {
-      console.error('2FA Challenge Error:', error);
+      console.error('[2FA CHALLENGE ERROR]:', error);
       return { 
         success: false, 
         error: error.message 
@@ -370,7 +171,7 @@ export async function challenge2FA() {
       challengeId: data.id 
     };
   } catch (error: any) {
-    console.error('2FA Challenge Unexpected Error:', error);
+    console.error('[2FA CHALLENGE UNEXPECTED ERROR]:', error);
     return { 
       success: false, 
       error: error.message || 'Failed to initiate 2FA challenge' 
@@ -390,7 +191,7 @@ export async function verify2FALogin(challengeId: string, code: string) {
     });
 
     if (error) {
-      console.error('2FA Verify Error:', error);
+      console.error('[2FA VERIFY ERROR]:', error);
       return { 
         success: false, 
         error: error.message 
@@ -399,10 +200,186 @@ export async function verify2FALogin(challengeId: string, code: string) {
 
     return { success: true };
   } catch (error: any) {
-    console.error('2FA Verify Unexpected Error:', error);
+    console.error('[2FA VERIFY UNEXPECTED ERROR]:', error);
     return { 
       success: false, 
       error: error.message || 'Failed to verify 2FA' 
+    };
+  }
+}
+
+// Email Sign-Up
+export async function signUpWithEmail(email: string, password: string) {
+  const supabase = createClientComponentClient();
+  
+  try {
+    console.log('[SIGNUP] Starting simplified signup process...');
+
+    // Basic signup with minimal options
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`
+      }
+    });
+
+    if (error) {
+      console.error('[SIGNUP DETAILED ERROR]', JSON.stringify(error, null, 2));
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, user: data.user };
+  } catch (unexpectedError) {
+    console.error('[UNEXPECTED SIGNUP ERROR]', unexpectedError);
+    return { success: false, error: unexpectedError.message };
+  }
+}
+
+// Send Magic Link
+export async function sendMagicLink(email: string) {
+  const supabase = createClientComponentClient();
+  
+  try {
+    console.log('[MAGIC LINK] Sending magic link to', email);
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      console.error('[MAGIC LINK ERROR]:', error);
+      return { 
+        success: false, 
+        error: error.message 
+      };
+    }
+
+    console.log('[MAGIC LINK] Magic link sent successfully');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[MAGIC LINK UNEXPECTED ERROR]:', error);
+    return { 
+      success: false, 
+      error: error.message || 'Failed to send magic link' 
+    };
+  }
+}
+
+// Resend Magic Link
+export async function resendMagicLink(email: string) {
+  console.log('[RESEND MAGIC LINK] Resending to', email);
+  return sendMagicLink(email);
+}
+
+// Update User Profile
+// Get Current User
+export async function getCurrentUser() {
+  const supabase = createClientComponentClient();
+  
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    
+    if (error) {
+      console.error('[GET USER ERROR]:', error);
+      return { 
+        success: false, 
+        error: error.message 
+      };
+    }
+
+    return { 
+      success: true, 
+      user 
+    };
+  } catch (error: any) {
+    console.error('[GET USER UNEXPECTED ERROR]:', error);
+    return { 
+      success: false, 
+      error: error.message || 'Failed to get current user' 
+    };
+  }
+}
+
+// Update User Profile
+export async function updateUserProfile(userId: string, profile: {
+  first_name?: string;
+  last_name?: string;
+  phone_number?: string;
+  country?: string;
+  city?: string;
+}) {
+  const supabase = createClientComponentClient();
+  console.log('[UPDATE PROFILE] Updating profile for user', userId);
+
+  try {
+    // Update auth.users metadata
+    const { error: updateAuthError } = await supabase.auth.updateUser({
+      data: profile
+    });
+
+    if (updateAuthError) {
+      console.error('[AUTH UPDATE ERROR]:', updateAuthError);
+      throw updateAuthError;
+    }
+
+    console.log('[UPDATE PROFILE] Auth metadata updated successfully');
+
+    // Check if profile exists
+    const { data: existingProfile, error: checkError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error('[PROFILE CHECK ERROR]:', checkError);
+      throw checkError;
+    }
+
+    const profileUpdate = {
+      first_name: profile.first_name || '',
+      last_name: profile.last_name || '',
+      phone_number: profile.phone_number || '',
+      country: profile.country || '',
+      city: profile.city || ''
+    };
+
+    let profileResult;
+    
+    if (existingProfile) {
+      // Update existing profile
+      console.log('[UPDATE PROFILE] Updating existing profile');
+      profileResult = await supabase
+        .from('profiles')
+        .update(profileUpdate)
+        .eq('user_id', userId);
+    } else {
+      // Create new profile if it doesn't exist
+      console.log('[UPDATE PROFILE] Creating new profile');
+      profileResult = await supabase
+        .from('profiles')
+        .insert({
+          user_id: userId,
+          avatar: '👤',
+          ...profileUpdate
+        });
+    }
+
+    if (profileResult.error) {
+      console.error('[PROFILE UPDATE ERROR]:', profileResult.error);
+      throw profileResult.error;
+    }
+
+    console.log('[UPDATE PROFILE] Profile updated successfully');
+    return { success: true };
+  } catch (error: any) {
+    console.error('[PROFILE UPDATE CATCH ERROR]:', error);
+    return { 
+      success: false, 
+      error: error.message || 'Failed to update profile' 
     };
   }
 }
