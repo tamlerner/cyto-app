@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 
 // Configuration
-const API_KEY = '543b55e60c9f7e08e6a86f4d';
+const API_KEY = process.env.NEXT_PUBLIC_EXCHANGERATE_API_KEY;
 const BASE_URL = `https://v6.exchangerate-api.com/v6/${API_KEY}`;
 const CACHE_DURATION = 90000; // Cache duration in seconds (5 minutes)
 const RATE_LIMIT_WINDOW = 36000; // 1 hour in seconds
-const MAX_REQUESTS_PER_WINDOW = 15000; // API limit per hour
+const MAX_REQUESTS_PER_WINDOW = 60; // API limit per hour
 
 // Rate limiting
 let requestCount = 0;
